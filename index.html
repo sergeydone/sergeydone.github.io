@@ -1,2 +1,686 @@
-hello world !
-big World! world!
+<html>
+<head>
+<!--<meta http-equiv="Content-Type" content="text/html; charset=utf-8">-->
+<meta charset="UTF-8">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <link href="https://gitcdn.github.io/bootstrap-toggle/2.2.2/css/bootstrap-toggle.min.css" rel="stylesheet">
+   <link rel="stylesheet" href="styles/calcmypay.css">
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <script src="https://gitcdn.github.io/bootstrap-toggle/2.2.2/js/bootstrap-toggle.min.js"></script>
+  
+ 
+<meta name="description" content="Коммунальные платежи домовладения или квартиры">
+<meta name="keywords" content="коммунальные платежи, коммуналка, квартира, домовладение">
+<title>  calcmypay: calc my pay </title>
+</head>
+<body onLoad="">
+
+
+
+
+
+<div class="container">
+
+	<div class="row header">
+		<div class=" col-xs-12">
+			<div class="logotip"><h1>Расчет коммунальных бесплатно</h1></div>
+		</div>
+	</div>
+	
+	
+	<div class="row">
+		<!--Меню для малых экранов -->
+		<div class="hidden-lg hidden-md hidden-sm">
+			<div class="navbar navbar-default">
+				<div class="navbar-header">
+					<button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbarSmall">
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+					</button>
+					<a class="navbar-brand" href="#">Платежи</a>
+				</div>
+				<div class="collapse navbar-collapse" id="myNavbarSmall">
+
+
+					<ul class="nav navbar-nav">
+								<li class="ssp_center calcmypay-on-off">
+											<div class="checkbox">
+												<input type="checkbox" data-width="200px" id="calcmypay-check-1" checked value=""  data-on="Эл. энергия " data-off="Эл. энергия " data-onstyle="success"  data-toggle="toggle" onChange="" data-size="large" > 
+											</div>
+								</li>
+								<li class="ssp_center calcmypay-on-off"> 
+											<div class="checkbox">
+												<input type="checkbox" data-width="200px" id="calcmypay-check-2"  value="" data-on="Прир. газ " data-off="Прир. газ " data-onstyle="success"  data-toggle="toggle" onChange="" data-size="large" > 
+											</div>
+								</li>
+								<li class="ssp_center calcmypay-on-off"> 
+											<div class="checkbox">
+												<input type="checkbox" data-width="200px" id="calcmypay-check-3"  value="" data-on="Аренда " data-off="Аренда " data-onstyle="success"  data-toggle="toggle" onChange="" data-size="large" > 
+											</div>
+								</li>
+								<!-- /**/ -->
+
+								<!-- -->
+
+								<li class="ssp_center calcmypay-on-off"> 
+											<div class="checkbox">
+												<input type="checkbox" data-width="200px" id="calcmypay-check-5"  value="" data-on="Хол. вода " data-off="Хол. вода " data-onstyle="success"  data-toggle="toggle" onChange="" data-size="large" > 
+											</div>
+								</li>
+
+								<li class="ssp_center calcmypay-on-off"> 
+											<div class="checkbox">
+												<input type="checkbox" data-width="200px" id="calcmypay-check-6"  value="" data-on="Стоки хол.воды " data-off="Стоки хол.воды " data-onstyle="success"  data-toggle="toggle" onChange="" data-size="large" > 
+											</div>
+								</li>
+
+								<li class="ssp_center calcmypay-on-off"> 
+											<div class="checkbox">
+												<input type="checkbox" data-width="200px" id="calcmypay-check-7"  value="" data-on="Гор. вода " data-off="Гор. вода " data-onstyle="success"  data-toggle="toggle" onChange="" data-size="large" > 
+											</div>
+								</li>
+
+								<li class="ssp_center calcmypay-on-off"> 
+											<div class="checkbox">
+												<input type="checkbox" data-width="200px" id="calcmypay-check-8"  value="" data-on="Стоки гор.воды " data-off="Стоки гор.воды " data-onstyle="success"  data-toggle="toggle" onChange="" data-size="large" > 
+											</div>
+								</li>
+
+								<li class="ssp_center calcmypay-on-off"> 
+											<div class="checkbox">
+												<input type="checkbox" data-width="200px" id="calcmypay-check-9"  value="" data-on="Отопление " data-off="Отопление " data-onstyle="success"  data-toggle="toggle" onChange="" data-size="large" > 
+											</div>
+								</li>
+
+								<li class="ssp_center calcmypay-on-off"> 
+											<div class="checkbox">
+												<input type="checkbox" data-width="200px" id="calcmypay-check-10"  value="" data-on="Квартплата " data-off="Квартплата " data-onstyle="success"  data-toggle="toggle" onChange="" data-size="large" > 
+											</div>
+								</li>
+
+								<li class="ssp_center calcmypay-on-off"> 
+											<div class="checkbox">
+												<input type="checkbox" data-width="200px" id="calcmypay-check-11"  value="" data-on="Доп. квитанция" data-off="Доп. квитанция" data-onstyle="success"  data-toggle="toggle" onChange="" data-size="large" > 
+											</div>
+								</li>
+
+								<!-- -->
+					</ul>
+				</div>
+			</div>
+		</div>
+	</div>
+
+
+		
+	<div class="row">
+		<div class="hidden-lg hidden-md hidden-sm col-xs-12 scol2"><!--Контент малых экранов  -->
+			
+			<form role="form" class="form-horizontal" id="calcmypay-check"> <!-- форма для ввода показаний -->
+				
+				<div class = "row" >
+						<div class="col-xs-12 calcmypay-style-caption myCaption">
+							Расчет коммунальных платежей для квартиры или домовладения 
+						</div>
+				</div>
+				
+				
+				<div class = "row">
+						<div class="col-xs-12"> 
+							<div class="calcmypay-style-border myBorder"></div>
+						</div>
+				</div>
+				
+				<div class = "row" id="calcmypay-check-1-show-hide" > <!-- строка с услугой 1-->
+					<div class = "col-xs-12 calcmypay-input-row calcmypay-summ-row calcmypay-start-tarif-row" > <!-- строка в которой задается признак обработчика данных 
+					                                введенных в полях ввода классом TreeRoot-->
+					
+						<div class = "row">
+							<div class="col-xs-12"> 
+								<div class="calcmypay-style-caption myCaption"> Эл. энергия </div>
+							</div>	
+						</div>
+
+						<div class = "row">
+							<div class="col-xs-6">Тариф, грн/кВт*ч </div>
+							<div class="col-xs-6"> 0.90 </div>
+						</div>
+
+						<div class = "row">
+							<div class="col-xs-6">Нач. показания </div>
+							<div class="col-xs-6"> 
+								<input class="form-control inputArea2" type="text" value=''> 
+							</div>
+						</div>
+
+						<div class = "row">
+							<div class="col-xs-6">Кон. показания </div>
+							<div class="col-lg-2 col-md-2 col-sm-2 col-xs-6"> 
+								<input class="form-control inputArea2"  type="text" value=''>
+							</div>
+						</div>
+
+						<div class = "row">
+							<div class="col-xs-6">Разница </div>
+							<div class="col-xs-6">  </div>
+						</div>
+
+						<div class = "row">
+							<div class="col-xs-6">Сумма, грн </div>
+							<div class="col-xs-6 calcmypay-style-cost myCost"> 0 </div>
+						</div>
+
+						<div class = "row">
+							<div class="col-xs-12"> 
+								<div class="calcmypay-style-border myBorder">  </div>
+							</div>
+						</div>
+
+					</div>
+				</div>
+
+				<div class = "row" id="calcmypay-check-2-show-hide"><!-- строка с услугой 2-->
+				<div class = "col-xs-12 calcmypay-input-row calcmypay-summ-row calcmypay-start-tarif-row">
+
+					<div class = "row">
+						<div class="col-xs-12" > 
+							<div class="calcmypay-style-caption myCaption"> Природный газ  </div>
+						</div>
+					</div>
+
+					<div class = "row">
+						<div class="col-xs-6 ">Тариф, грн/м3 </div>
+						<div class="col-xs-6 "> 6.9587 </div>
+					</div>
+					<div class = "row">
+						<div class="col-xs-6">Нач. показания </div>
+						<div class="col-xs-6"> 
+							<input class="form-control inputArea2" type="text">  
+						</div>
+					</div>
+					<div class = "row">
+						<div class="col-xs-6"> Кон. показания </div>
+						<div class="col-xs-6">
+							<input class="form-control inputArea2" type="text"> 
+						</div>
+					</div>
+					<div class = "row">
+						<div class="col-xs-6 ">Разница </div>
+						<div class="col-xs-6 ">  </div>
+					</div>
+					<div class = "row">
+						<div class="col-xs-6 ">Сумма </div>
+						<div class="col-xs-6 calcmypay-style-cost myCost "> 0 </div>
+					</div>
+					<div class = "row">
+						<div class="col-xs-12" > 
+							<div class="calcmypay-style-border myBorder">  </div>
+						</div>
+					</div>
+				</div>
+				</div>
+
+				
+
+				<div class = "row" id="calcmypay-check-3-show-hide"><!-- строка с итогом -->
+				<div class = "col-xs-12 calcmypay-summ-row calcmypay-start-tarif-row">
+					
+					<div class = "row">
+						<div class="col-xs-12" > 
+							<div class="calcmypay-style-caption myCaption"> Аренда за Месяц 2018г.  </div>
+						</div>
+					</div>
+
+					<div class = "row"><span></span><span></span></div> <!-- пустое поле для единообразия структуры -->
+					<div class = "row"><span></span><span></span></div> <!-- пустое поле для единообразия структуры -->
+					<div class = "row"><span></span><span></span></div> <!-- пустое поле для единообразия структуры -->
+					<div class = "row"><span></span><span></span></div> <!-- пустое поле для единообразия структуры -->
+
+
+					<div class = "row">
+						<div class="col-xs-12" > 
+							<div class="calcmypay-style-total myTotal">  1500,00 грн</div>
+						</div>
+					</div>
+
+					<div class = "row">
+						<div class="col-xs-12" > 
+							<div class="calcmypay-style-border myBorder">  </div>
+						</div>
+					</div>
+				</div>
+				</div>
+
+				<!-- -->
+				<div class = "row" id="calcmypay-check-5-show-hide"><!-- строка с итогом -->
+				<div class = "col-xs-12 calcmypay-summ-row calcmypay-start-tarif-row">
+					
+					<div class = "row">
+						<div class="col-xs-12" > 
+							<div class="calcmypay-style-caption myCaption"> Холодная вода  </div>
+						</div>
+					</div>
+
+					<div class = "row"><span></span><span></span></div> <!-- пустое поле для единообразия структуры -->
+					<div class = "row"><span></span><span></span></div> <!-- пустое поле для единообразия структуры -->
+					<div class = "row"><span></span><span></span></div> <!-- пустое поле для единообразия структуры -->
+					<div class = "row"><span></span><span></span></div> <!-- пустое поле для единообразия структуры -->
+
+
+					<div class = "row">
+						<div class="col-xs-12" > 
+							<div class="calcmypay-style-total myTotal">  0,00 грн</div>
+						</div>
+					</div>
+
+					<div class = "row">
+						<div class="col-xs-12" > 
+							<div class="calcmypay-style-border myBorder">  </div>
+						</div>
+					</div>
+				</div>
+				</div>
+
+				<div class = "row" id="calcmypay-check-6-show-hide"><!-- строка с итогом -->
+				<div class = "col-xs-12 calcmypay-summ-row calcmypay-start-tarif-row">
+					
+					<div class = "row">
+						<div class="col-xs-12" > 
+							<div class="calcmypay-style-caption myCaption"> Стоки холодной воды.  </div>
+						</div>
+					</div>
+
+					<div class = "row"><span></span><span></span></div> <!-- пустое поле для единообразия структуры -->
+					<div class = "row"><span></span><span></span></div> <!-- пустое поле для единообразия структуры -->
+					<div class = "row"><span></span><span></span></div> <!-- пустое поле для единообразия структуры -->
+					<div class = "row"><span></span><span></span></div> <!-- пустое поле для единообразия структуры -->
+
+
+					<div class = "row">
+						<div class="col-xs-12" > 
+							<div class="calcmypay-style-total myTotal">  0,00 грн</div>
+						</div>
+					</div>
+
+					<div class = "row">
+						<div class="col-xs-12" > 
+							<div class="calcmypay-style-border myBorder">  </div>
+						</div>
+					</div>
+				</div>
+				</div>
+
+				<div class = "row" id="calcmypay-check-7-show-hide"><!-- строка с итогом -->
+				<div class = "col-xs-12 calcmypay-summ-row calcmypay-start-tarif-row">
+					
+					<div class = "row">
+						<div class="col-xs-12" > 
+							<div class="calcmypay-style-caption myCaption"> Горячая вода.  </div>
+						</div>
+					</div>
+
+					<div class = "row"><span></span><span></span></div> <!-- пустое поле для единообразия структуры -->
+					<div class = "row"><span></span><span></span></div> <!-- пустое поле для единообразия структуры -->
+					<div class = "row"><span></span><span></span></div> <!-- пустое поле для единообразия структуры -->
+					<div class = "row"><span></span><span></span></div> <!-- пустое поле для единообразия структуры -->
+
+
+					<div class = "row">
+						<div class="col-xs-12" > 
+							<div class="calcmypay-style-total myTotal">  0,00 грн</div>
+						</div>
+					</div>
+
+					<div class = "row">
+						<div class="col-xs-12" > 
+							<div class="calcmypay-style-border myBorder">  </div>
+						</div>
+					</div>
+				</div>
+				</div>
+
+				<div class = "row" id="calcmypay-check-8-show-hide"><!-- строка с итогом -->
+				<div class = "col-xs-12 calcmypay-summ-row calcmypay-start-tarif-row">
+					
+					<div class = "row">
+						<div class="col-xs-12" > 
+							<div class="calcmypay-style-caption myCaption"> Стоки горячей воды.  </div>
+						</div>
+					</div>
+
+					<div class = "row"><span></span><span></span></div> <!-- пустое поле для единообразия структуры -->
+					<div class = "row"><span></span><span></span></div> <!-- пустое поле для единообразия структуры -->
+					<div class = "row"><span></span><span></span></div> <!-- пустое поле для единообразия структуры -->
+					<div class = "row"><span></span><span></span></div> <!-- пустое поле для единообразия структуры -->
+
+
+					<div class = "row">
+						<div class="col-xs-12" > 
+							<div class="calcmypay-style-total myTotal">  0,00 грн</div>
+						</div>
+					</div>
+
+					<div class = "row">
+						<div class="col-xs-12" > 
+							<div class="calcmypay-style-border myBorder">  </div>
+						</div>
+					</div>
+				</div>
+				</div>
+
+				<div class = "row" id="calcmypay-check-9-show-hide"><!-- строка с итогом -->
+				<div class = "col-xs-12 calcmypay-summ-row calcmypay-start-tarif-row">
+					
+					<div class = "row">
+						<div class="col-xs-12" > 
+							<div class="calcmypay-style-caption myCaption"> Отопление.  </div>
+						</div>
+					</div>
+
+					<div class = "row"><span></span><span></span></div> <!-- пустое поле для единообразия структуры -->
+					<div class = "row"><span></span><span></span></div> <!-- пустое поле для единообразия структуры -->
+					<div class = "row"><span></span><span></span></div> <!-- пустое поле для единообразия структуры -->
+					<div class = "row"><span></span><span></span></div> <!-- пустое поле для единообразия структуры -->
+
+
+					<div class = "row">
+						<div class="col-xs-12" > 
+							<div class="calcmypay-style-total myTotal">  0,00 грн</div>
+						</div>
+					</div>
+
+					<div class = "row">
+						<div class="col-xs-12" > 
+							<div class="calcmypay-style-border myBorder">  </div>
+						</div>
+					</div>
+				</div>
+				</div>
+
+				<div class = "row" id="calcmypay-check-10-show-hide"><!-- строка с итогом -->
+				<div class = "col-xs-12 calcmypay-summ-row calcmypay-start-tarif-row">
+					
+					<div class = "row">
+						<div class="col-xs-12" > 
+							<div class="calcmypay-style-caption myCaption"> Квартплата  </div>
+						</div>
+					</div>
+
+					<div class = "row"><span></span><span></span></div> <!-- пустое поле для единообразия структуры -->
+					<div class = "row"><span></span><span></span></div> <!-- пустое поле для единообразия структуры -->
+					<div class = "row"><span></span><span></span></div> <!-- пустое поле для единообразия структуры -->
+					<div class = "row"><span></span><span></span></div> <!-- пустое поле для единообразия структуры -->
+
+
+					<div class = "row">
+						<div class="col-xs-12" > 
+							<div class="calcmypay-style-total myTotal">  0,00 грн</div>
+						</div>
+					</div>
+
+					<div class = "row">
+						<div class="col-xs-12" > 
+							<div class="calcmypay-style-border myBorder">  </div>
+						</div>
+					</div>
+				</div>
+				</div>
+
+				<div class = "row" id="calcmypay-check-11-show-hide"><!-- строка с итогом -->
+				<div class = "col-xs-12 calcmypay-summ-row calcmypay-start-tarif-row">
+					
+					<div class = "row">
+						<div class="col-xs-12" > 
+							<div class="calcmypay-style-caption myCaption"> Дополнительная квитанция  </div>
+						</div>
+					</div>
+
+					<div class = "row"><span></span><span></span></div> <!-- пустое поле для единообразия структуры -->
+					<div class = "row"><span></span><span></span></div> <!-- пустое поле для единообразия структуры -->
+					<div class = "row"><span></span><span></span></div> <!-- пустое поле для единообразия структуры -->
+					<div class = "row"><span></span><span></span></div> <!-- пустое поле для единообразия структуры -->
+
+
+					<div class = "row">
+						<div class="col-xs-12" > 
+							<div class="calcmypay-style-total myTotal">  0,00 грн</div>
+						</div>
+					</div>
+
+					<div class = "row">
+						<div class="col-xs-12" > 
+							<div class="calcmypay-style-border myBorder">  </div>
+						</div>
+					</div>
+				</div>
+				</div>
+				<!-- -->
+
+
+				<div class = "row" id="calcmypay-check-4-show-hide"><!-- строка с итогом -->
+				<div class = "col-xs-12">
+					
+					<div class = "row">
+						<div class="col-xs-12" > 
+							<div class="calcmypay-style-caption myCaption"> Всего:  </div>
+						</div>
+					</div>
+
+					<div class = "row"></div>
+					<div class = "row"></div>
+					<div class = "row"></div>
+					<div class = "row"></div>
+
+
+					<div class = "row">
+						<div class="col-xs-12" > 
+							<div class="calcmypay-style-total myTotal" id="calcmypay-summary">  0 грн</div>
+						</div>
+					</div>
+
+					<div class = "row">
+						<div class="col-xs-12" > 
+							<div class="calcmypay-style-border myBorder">  </div>
+						</div>
+					</div>
+
+				<!-- -->
+				</div>	
+				</div>
+
+				<div class = "row calcmypay-style-caption">
+					<div class="col-xs-12" > 
+						<input type="button" id="calcmypay-tarif-on" class="btn btn-warning buttonArea" onClick="" value="Внести тарифы">	
+					</div>
+				</div>
+				
+			
+			</form>	  <!-- конец формы ввода показаний -->
+
+
+
+
+			<!-- форма ввода тарифов -->
+
+
+				<form role="form" id="calcmypay-tarif" class="bs-example bs-example-form">
+				
+					<div class = "row">
+						<div class="col-xs-12 calcmypay-style-caption myCaption">
+							Тарифы для расчета 
+						</div>
+					</div>
+
+					<!-- начало строки с тарифом 1-->
+					<div class = "row" id="calcmypay-check-1-tarif-show-hide"><!-- строка с тарифом 1, id="calcmypay-check-1-show-hide-tarif -->
+						<div class = "col-xs-12 calcmypay-tarif-row">
+							<div class="input-group fullTarifArea">
+								<input class="form-control calcmypay-style-inputArea" type="text" id="calcmypay-tarif-1" value=""><span class="input-group-addon">Эл. энергия</span>
+							</div>	
+						</div>
+					</div>
+					<!-- конец строки с тарифом 1-->
+
+					<!-- начало строки с тарифом 2-->
+					<div class = "row" id="calcmypay-check-2-tarif-show-hide"><!-- строка с тарифом 2-->
+						<div class = "col-xs-12 calcmypay-tarif-row">
+							<div class="input-group fullTarifArea">
+								<input class="form-control calcmypay-style-inputArea" type="text" id="calcmypay-tarif-2" value=""><span class="input-group-addon">Прир. газ</span>
+							</div>	
+						</div>
+					</div>
+					<!-- конец строки с тарифом 2-->
+
+					<!-- начало строки с тарифом 3-->
+					<div class = "row" id="calcmypay-check-3-tarif-show-hide"><!-- строка с тарифом 3, id="calcmypay-check-3-show-hide-tarif-->
+						<div class = "col-xs-12 calcmypay-tarif-row">
+						    <div class="input-group fullTarifArea">
+										<input class="form-control calcmypay-style-inputArea" type="text" id="calcmypay-tarif-3" value=""><span class="input-group-addon">Аренда</span>
+							</div>	
+						</div>
+					</div>
+					<!-- конец строки с тарифом 3-->		
+
+					<!-- -->
+					<!-- начало строки с тарифом 3-->
+					<div class = "row" id="calcmypay-check-5-tarif-show-hide"><!-- строка с тарифом 3, id="calcmypay-check-3-show-hide-tarif-->
+						<div class = "col-xs-12 calcmypay-tarif-row">
+						    <div class="input-group fullTarifArea">
+										<input class="form-control calcmypay-style-inputArea" type="text" id="calcmypay-tarif-3" value=""><span class="input-group-addon">Хол. вода</span>
+							</div>	
+						</div>
+					</div>
+					<!-- конец строки с тарифом 3-->	
+
+					<!-- начало строки с тарифом 3-->
+					<div class = "row" id="calcmypay-check-6-tarif-show-hide"><!-- строка с тарифом 3, id="calcmypay-check-3-show-hide-tarif-->
+						<div class = "col-xs-12 calcmypay-tarif-row">
+						    <div class="input-group fullTarifArea">
+										<input class="form-control calcmypay-style-inputArea" type="text" id="calcmypay-tarif-3" value=""><span class="input-group-addon">Стоки хол.воды</span>
+							</div>	
+						</div>
+					</div>
+					<!-- конец строки с тарифом 3-->
+
+					<!-- начало строки с тарифом 3-->
+					<div class = "row" id="calcmypay-check-7-tarif-show-hide"><!-- строка с тарифом 3, id="calcmypay-check-3-show-hide-tarif-->
+						<div class = "col-xs-12 calcmypay-tarif-row">
+						    <div class="input-group fullTarifArea">
+										<input class="form-control calcmypay-style-inputArea" type="text" id="calcmypay-tarif-3" value=""><span class="input-group-addon">Гор. вода</span>
+							</div>	
+						</div>
+					</div>
+					<!-- конец строки с тарифом 3-->
+
+					<!-- начало строки с тарифом 3-->
+					<div class = "row" id="calcmypay-check-8-tarif-show-hide"><!-- строка с тарифом 3, id="calcmypay-check-3-show-hide-tarif-->
+						<div class = "col-xs-12 calcmypay-tarif-row">
+						    <div class="input-group fullTarifArea">
+										<input class="form-control calcmypay-style-inputArea" type="text" id="calcmypay-tarif-3" value=""><span class="input-group-addon">Стоки гор.воды</span>
+							</div>	
+						</div>
+					</div>
+					<!-- конец строки с тарифом 3-->			
+
+					<!-- начало строки с тарифом 3-->
+					<div class = "row" id="calcmypay-check-9-tarif-show-hide"><!-- строка с тарифом 3, id="calcmypay-check-3-show-hide-tarif-->
+						<div class = "col-xs-12 calcmypay-tarif-row">
+						    <div class="input-group fullTarifArea">
+										<input class="form-control calcmypay-style-inputArea" type="text" id="calcmypay-tarif-3" value=""><span class="input-group-addon">Отопление</span>
+							</div>	
+						</div>
+					</div>
+					<!-- конец строки с тарифом 3-->	
+
+					<!-- начало строки с тарифом 3-->
+					<div class = "row" id="calcmypay-check-10-tarif-show-hide"><!-- строка с тарифом 3, id="calcmypay-check-3-show-hide-tarif-->
+						<div class = "col-xs-12 calcmypay-tarif-row">
+						    <div class="input-group fullTarifArea">
+										<input class="form-control calcmypay-style-inputArea" type="text" id="calcmypay-tarif-3" value=""><span class="input-group-addon">Квартплата</span>
+							</div>	
+						</div>
+					</div>
+					<!-- конец строки с тарифом 3-->	
+
+					<!-- начало строки с тарифом 3-->
+					<div class = "row" id="calcmypay-check-11-tarif-show-hide"><!-- строка с тарифом 3, id="calcmypay-check-3-show-hide-tarif-->
+						<div class = "col-xs-12 calcmypay-tarif-row">
+						    <div class="input-group fullTarifArea">
+										<input class="form-control calcmypay-style-inputArea" type="text" id="calcmypay-tarif-3" value=""><span class="input-group-addon">Доп. квитанция</span>
+							</div>	
+						</div>
+					</div>
+					<!-- конец строки с тарифом 3-->	
+
+					<!-- -->			
+
+					<div class = "row">
+						<div class="col-xs-12 calcmypay-style-caption myCaption">
+							<input type="button"  id="calcmypay-tarif-accept" class="btn btn-warning buttonArea" value="Применить тарифы">
+						</div>
+					</div>
+
+					
+					<div class = "row">
+						<div class="col-xs-12 calcmypay-style-caption">
+							<input type="button" id="calcmypay-tarif-of" class="btn btn-success buttonArea" value="Не менять тарифы">
+						</div>
+					</div>
+
+
+					<div class = "row">
+						<div class="col-xs-12"> 
+							<div class="calcmypay-style-border myBorder"></div>
+						</div>
+					</div>
+
+					
+
+				</form>
+
+			<!-- конец формы ввода тарифов-->
+
+
+	
+		</div> <!-- конец контента для малых экранов -->
+	</div>
+
+
+	
+
+
+
+	<!-- Начало подвалов -->
+
+	<div class="row"><!-- Начало подвала --><!--Подвал малых экранов -->
+		<div class="hidden-lg hidden-md hidden-sm col-xs-12 ssp_gray">
+			<div>
+					Перед вами тестовая версия веб-приложения. 
+					<!-- Приложение предназначено для свободного применения. 
+					Информация введенная пользователем сохраняется только на устройстве пользователя. -->
+					Для корректной работы приложения, в настройках браузера должна быть включена поддержка JavaScript <!-- и cookies. 
+					Начав ввод данных в приложении вы соглашаетесь с тем, что введенная вами информации может сохраняться в файлах cookies на вашем устройстве. Временные файлы будут автоматически очищены через 40 дней или по вашей команде в браузере.-->
+			</div>
+			<div>  &nbsp </div>
+			<div>
+					Разработано в 2013 году на компьютере AMD Athlon 64x2 Dual Core Processor 3800+ 2ГГц, 2ГБ ОЗУ, любезно предоставленным Вадимом. 
+			</div>
+			<div>
+					Использованы технологии JS и Twitter Bootstrap. 
+			</div>  
+			<div>
+					Разработчик: calcmypay@gmail.com
+			</div>
+		</div>
+	</div> <!-- конец подвала для малых экранов -->
+
+</div> <!-- конец контейнера -->
+	
+<script src="scripts/calcmypay.js"></script>
+</body>
+</html>

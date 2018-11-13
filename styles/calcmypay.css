@@ -1,0 +1,207 @@
+/* start reset css by meyer 
+
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,ісщд
+article, aside, canvas, details, embed, 
+figure, figcaption, footer, header, hgroup, 
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	font-size: 100%;
+	font: inherit;
+	vertical-align: baseline;
+}  
+
+*/
+/* HTML5 display-role reset for older browsers 
+article, aside, details, figcaption, figure, 
+footer, header, hgroup, menu, nav, section {
+	display: block;
+}
+body {
+	line-height: 1;
+}
+ol, ul {
+	list-style: none;
+}
+blockquote, q {
+	quotes: none;
+}
+blockquote:before, blockquote:after,
+q:before, q:after {
+	content: '';
+	content: none;
+}
+table {
+	border-collapse: collapse;
+	border-spacing: 0;
+}
+
+  end reset css by meyer */
+
+.modify {
+background-color: red;
+border-color: red;
+border-radius: 20px;
+}
+
+.header {
+height: 150px;
+/*background-color: gray;*/
+}
+
+
+.freespace {
+padding-top: 80px;
+}
+
+
+.footer {
+height: 40px;
+background-color: green;
+}
+
+.sidebar {
+background-color: red;
+color: white;
+}
+
+.mainText {
+background-color: white;
+}
+
+.logotip {
+position: absolute;
+top: 0px;
+left: 0px;
+color: #5CB85C; /*#b0a18e;*/
+}
+
+/*.container {
+width: 900px;
+}*/
+
+.inputArea {
+border-color: #f0ad4e;
+
+}
+
+.calcmypay-style-inputArea {
+border-color: #f0ad4e;
+
+}
+
+#rec1, #rec2, #rec3{
+width: 150px;
+}
+
+.tarifArea {
+/*width: 100px;*/
+}
+.fullTarifArea, .buttonArea, .listArea{
+/*width: 180px;*/
+}
+
+.scol1 {
+background-color: white;
+padding: 15px 15px 15px 45px;
+}
+.scol2 {
+	background-color: white;
+	color: black
+	padding: 15px 15px 15px 30px;
+}
+.scol2 div {  /* делает промежуток между строками*/
+	padding-top: 10px;
+}
+.inputArea2 {
+border-color: #f0ad4e;
+max-width: 80%;
+}
+.checkbox .test {
+	background-color: red;
+}
+label {
+	
+	padding-top:  15px;
+	
+	}
+
+.calcmypay-style-border {
+	
+	border-bottom: 2px solid #5CB85C;
+
+}
+
+.calcmypay-style-caption {
+	margin: 0px;
+	padding: 0px;
+	font-size: 24px;
+	font-weight: bold;
+	text-align: center;
+	/*color: #97743a;/*#ba9077;*/
+}
+
+.calcmypay-style-total {
+	margin: 0px;
+	padding-left: 52%;
+
+	font-weight: bold;
+	
+}
+
+.calcmypay-style-cost {
+	font-weight: bold;
+	
+}
+
+.myCheckbox {
+	color: red;
+}
+
+.ssp_red {
+  	background-color: white;/*red;*/
+  }
+  .ssp_green {
+  	background-color: white;/*green;*/
+  }
+  .ssp_blue {
+  	background-color: white;/*blue;*/
+  }
+  .ssp_yellow {
+  	/* background-color: #262216; #5a5c51; yellow;*/
+  	/* color: #b0a18e; #f6f1ed; #bcd5d1;*/
+  }
+  .ssp_orange {
+  	background-color: orange;
+  }
+  .ssp_gray {
+  	background-color: white;/*#696969;*/
+  	color: gray;
+  }
+  .ssp_black {
+  	background-color: #1d2120;/*black;*/
+  	color: #5a5c51;
+  }
+  .ssp_center {
+  	text-align: center;
+  	margin-top: 25px;
+  }
+
+
+  body {
+  	/*background-color: #262216;/*#5a5c51;/*#bcd5d1;*/
+  }
+
+  .wow {
+  	background-color: red;
+  }
