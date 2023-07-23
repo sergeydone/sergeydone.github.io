@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="PowerShell">
+<meta name="keywords" content="PowerShell">
+<title>PowerShell</title>
+</head>
+<body>
+<nav> <a href = "index.html"> --- Up </a></nav>
+
+<h1>
+# ### Archiving script. Powershell script for Archiving file messages from source directories, with saving the latest archive, deleting previous archive and sending message. This script works with multiple directories. The target for script is user custom Folders. Usefull for Win 2012 server. Every archive should be saved into separate directory. This script should be run with admin privileges.
+</h1>
+
+<pre>
+# Set source directory, part of archive name and destination directory path (multiple choices):
+$myTask = @([pscustomobject]@{
+myFilesSourcePath = 'C:\SOURCEFOLDER1'
+myArchivePartName = 'SOURCEFOLDER1'
+myFilesDestinationPath = 'ARCHIVFOLDER1\'
+},[pscustomobject]@{
+myFilesSourcePath = 'SOURCEFOLDER2'
+myArchivePartName = 'SOURCEFOLDER1'
+myFilesDestinationPath = 'ARCHIVFOLDER2\'
+})
+
+# Set maintenance time
+$ticHour = @("17")
+
+# Set autowork tic, seconds
+$myTic = 3600
+
+# Set log saving flag
+$mySaveToLogFile = 1
+
+# Set local path to save log
+$myPathLog = 'C:\Logs\MonitoringLogs\'
+
+# Set email sending flag
+$mySaveToSendEmail = 0
+
+# Set email credential (Optional)
+# $UserName = 'EMAILLOGIN'
+# $Pass = ConvertTo-SecureString '...' -AsPlainText -Force
+
+# Set sender address (Optional)
+$MyAddress = 'EMAILNAME@EMAIL.DOMEN'
+
+# Set receiver address (Optional)
+$myReceiver = 'EMAILNAME@EMAIL.DOMEN'
+
+# Set second receiver address (Optional)
+$myReceiver2 = 'EMAILNAME@EMAIL.DOMEN'
+
+# Set email Info subject
+$myInfoSubject = "Information: EMAILCAPTION. "
+
+# Set email Alert subject
+$myAlertSubject = "Alert: EMAILCAPTION. "
+
+# Set smtp server (Optional)
+$mySMTPServer = '1.1.1.1'
+
+ 
+# Start workflow !
+# Define function for saving log
+
+function Save-LocalMessage
+{
+                param ($Subject, $Body, $To)
+                # Init log file name components
+                $myName = $env:computername
+                $myCurrentTime = Get-Date -f "yyyyMMddHHmmss"
+
+                # Save log file
+                if((Test-Path $myPathLog) -and ($mySaveToLogFile -eq 1))
+                {
+                            $myFullPath = $To + "\"+ $myCurrentTime + "_" + $myName + "_"+ "MonLog" + ".txt"
+                            $LogVar = "" + $Body
+                            $LogVar | out-file -filepath $myFullPath -width 200 
+                            Write-Host Log has been created successfully
+                } else
+                {
+                                Write-Host  Sorry but Log file directory not defined -ForegroundColor Red
+                }
+}
+
+# Initialize email credential
+if (($UserName) -and ($Pass))
+{
+                $MyCred = New-Object -TypeName PSCredential -ArgumentList $UserName, $Pass
+} else
+{
+                Write-Host "Sorry. Email credential not defined. First init hasn't confirmed. But can work with saving to local log file"
+}
+
+# Reserved for future purpose
+$Subject = ''
+
+Write-Host "Archiving script. Powershell script for Archiving received file messages from source directories"
+
+# Loop part
+while ($true)
+{
+                # Get date
+                $currentDate = "" + (Get-Date).ToString('yyyy-MM-dd hh:mm')
+
+                # get current hour
+                $currentHour = Get-Date -f "HH"
+
+                # Init or clear report about archiving folders
+                $myArchivingArrayList = '';
+
+                # Init or clear report about removing archives list
+                $myRemovigArchiveArrayList = '';
+
+                # Get current time for future archive name
+                $myCurrentTime = Get-Date -f "yyyyMMddHHmmss"
+
+                # Init new array
+                $items = ''
+
+                # Init old archive array
+                $previous = ''
+
+                # Init the report complete flag
+                $myReportCopleteFlag = 0
+
+                # Init the report error flag
+                $myReportErrorFlag = 0
+
+                # Check the task time
+                foreach($el in $ticHour)
+                {
+                                # match current hour with tic hour
+                                if($currentHour -eq $el)
+                                {
+                                    foreach($elTask in $myTask) 
+                                    {
+                                                # Init literal path for archiving command
+                                                $LiteralPath = @()
+
+                                                if( (Test-Path($elTask.myFilesSourcePath))  -and (Test-Path($elTask.myFilesDestinationPath)) )
+                                                {
+                                                            # Write-Host Directories path has checked!
+                                                            # Get source directory for archive                                                           
+                                                                $myArchiveName = ''+ $elTask.myFilesSourcePath
+                                                                
+                                                                # Prepare the future archive file name
+                                                                $DestinationPath = $elTask.myFilesDestinationPath + '' + $myCurrentTime + "_" + $elTask.myArchivePartName + "" + ".zip"
+
+                                                                # Create the directory archive - Useful for Win 2012 r2 server:
+                                                                Add-Type -assembly "system.io.compression.filesystem"
+
+                                                                [io.compression.zipfile]::CreateFromDirectory($myArchiveName, $DestinationPath)
+
+                                                                # Write-Host Archiving has been made  $myArchiveName
+                                                                 # Creating  log record start
+                                                                # Write-Host Archiving $myArchiveName
+                                                                $myArchivingArrayList += 'Maintenance: ' + $DestinationPath + ' has been created  ' + " `r`n "
+
+                                                                # Write-Host Maintenance part 2 - Work with archives
+                                                                # Getting archive array list from destination directory without age requirements
+
+                                                                $items = (Get-ChildItem -Path $elTask.myFilesDestinationPath | Where-Object { !$_.PSIsContainer })
+
+                                                                # Processing target archive list array in destination directory
+                                                                if ($items.length -gt 1)
+                                                                {
+                                                                                # Init last archive file size
+                                                                                $latestSize = 0
+
+                                                                                $latest = Get-ChildItem -Path $elTask.myFilesDestinationPath | Where-Object { !$_.PSIsContainer }  | Sort-Object LastAccessTime -Descending | Select-Object -First 1
+                                                                                $latestSize = $latest.Length
+                                                                                $latestName = $latest.Name
+                                                                                $previous = (Get-ChildItem -Path $elTask.myFilesDestinationPath -Exclude $latest | Where-Object { !$_.PSIsContainer })                                                                     
+                                                                                # Delete previous archive file if last archive file is bigger than or equal to the previous one
+
+                                                                                foreach($item in $previous)
+                                                                                {
+                                                                                            $removingItem = $elTask.myFilesDestinationPath + "" +$item.name
+
+                                                                                                $removingItemSize = $item.Length
+
+                                                                                                # Write-Host "Removing archive name" $removingItem ", size: " $removingItemSize
+
+                                                                                                if($removingItemSize -gt $latestSize)
+                                                                                                {             
+                                                                                                                Write-Host "Alert ! New archive file  " $latestName " size is less than the previous" $item.name
+
+                                                                                                                $myRemovigArchiveArrayList += "Alert. New archive file " + $latestName + " size is less than the previous " + $item.name +  " The previous file was not deleted!" + " `r`n "
+                                                                                                }
+                                                                                                else
+                                                                                                {
+                                                                                                                # Write-Host Removing file $removingItem
+
+                                                                                                                Remove-Item -Path $removingItem -Force
+
+                                                                                                                # Preparing  log record
+
+                                                                                                                $myRemovigArchiveArrayList += 'Maintenance: ' + $removingItem + " has been deleted  "  + " `r`n "
+                                                                                                }
+                                                                                }
+                                                                }
+
+                                                            $myReportCopleteFlag = 1
+
+                                                } else
+                                                {
+                                                                # Write-Host Directories path has been absent!
+                                                                $myReportErrorFlag = 1
+                                                }
+                                                ###
+                                                ###
+                                   }
+                                }
+                }
+
+                                                 if($myReportCopleteFlag -eq 1)
+                                                {
+                                                                # Write-Host Preparing report to save or send
+                                                                # Creating log record start
+                                                                $myBody = " `r`n " + $myArchivingArrayList  + "" + $myRemovigArchiveArrayList
+
+                                                                # Send email                                     
+                                                                if($mySaveToSendEmail -eq 1)
+                                                                {
+                                                                               if($MyCred) {Send-MailMessage -From $MyAddress -To $myReceiver -Cc $myReceiver2 -Subject $myInfoSubject -SmtpServer $mySMTPServer -Credential $MyCred -Body $myBody -Encoding UTF8} else {Write-Host "Sorry. Email credential not defined"}
+                                                                }
+
+                                                                # Save local log
+                                                                if($mySaveToLogFile -eq 1)
+                                                                {
+                                                                                $myAlerMessage = " `r`n " + $myInfoSubject + " " + $myBody + " `r`n "
+                                                                                Save-LocalMessage -Subject $Subject -Body $myAlerMessage -To $myPathLog
+                                                                }
+                                                                # Creating  log record end
+                                                }
+
+                                                if($myReportErrorFlag -eq 1)
+                                                {
+                                                                # Creating log record
+                                                                Write-Host Maintenance: Pay attention! Source or destination directory has not found. Archives has not been created.
+
+                                                                $myBody = " Maintenance: Pay attention! Source or destination directory has not found. Archives has not been created. " + " `r`n "
+
+                                                                # Send email                                     
+                                                                if($mySaveToSendEmail -eq 1)
+                                                                {
+                                                                            if($MyCred) {Send-MailMessage -From $MyAddress -To $myReceiver -Cc $myReceiver2 -Subject $myInfoSubject -SmtpServer $mySMTPServer -Credential $MyCred -Body $myBody -Encoding UTF8} else {Write-Host "Sorry. Email credential not defined"}
+                                                                }
+
+                                                                # Save local log
+                                                                if($mySaveToLogFile -eq 1)
+                                                                {
+                                                                            $myAlerMessage = " `r`n " + $myInfoSubject + " " + $myBody + " `r`n "
+
+                                                                                Save-LocalMessage -Subject $Subject -Body $myAlerMessage -To $myPathLog
+                                                                }
+
+                                                                # Creating  log record end
+                                                }
+
+                Write-Host "One hour tic"
+                Write-Host $currentHour
+
+                sleep -seconds $myTic
+}
+</pre>
+</body>
+</html>

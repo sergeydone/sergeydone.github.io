@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Postgresql DB replication">
+<meta name="keywords" content="Postgresql, replication, Windows">
+<title>Postgresql DB replication</title>
+</head>
+<body>
+<nav> <a href = "index.html"> --- Up </a></nav>
+
+<h1>Postgresql DB replication  </h1>
+
+<h2> ### Протестирована настройка и работа  репликации БД Postgresql
+методом постоянной архивации на  Ведущем сервере (ip: 111.111.111.111) и  ведомом сервере (ip: 222.222.222.222) Для настройки репликации необходимо:</h2>
+
+
+
+<code>  </code>
+<div>   </div>
+<div>&nbsp</div>
+
+<h3>## На Ведущем сервере:</h3>
+
+ 
+<div>  
+# 1. Создать каталог архивов WAL-файлов:
+</div>
+
+<pre>
+C:\Test_Backup_WAL   # Тестовый пример
+</pre>
+<div>&nbsp</div>
+ 
+<div>  
+# 2. Выполнить настройку ведущего сервера в режим постоянной архивации (файл postgresql.conf) с перезапуском Postgresql:
+</div>
+
+<pre>
+	wal_level = hot_standby  # достаточно подробные WAL-файлы
+
+	archive_mode = on # включение режима архивации
+
+	archive_command = 'copy "%p" "\C:\\Test_Backup_WAL\\%f"' # команда (или скрипт) для копирования WAL-файлов
+	
+	archive_timeout = 60  # это значение продумать, в тестовом примере - принудительная архивация каждые 60 секунд
+</pre>
+<div>&nbsp</div>
+ 
+
+<h3>##  На ведомом сервере:</h3>
+
+ 
+<div>  
+# 3.  Создать каталог архивов WAL-файлов:
+</div>
+
+<pre>
+	C:\Test_Backup_WAL      # Тестовый пример
+</pre>
+<div>&nbsp</div>
+ 
+<div>  
+# 4. Создать базовую копию данных ведущего сервера и восстановить её, например способом описанным в методике подготовки потоковой репликации.
+</div>
+
+<div>  
+# Для этого метода необходим временный доступ к Ведущему серверу, а на Ведущем сервере предварительно:
+</div>
+
+<div>  
+# создан пользователь репликации:
+</div>
+
+<pre>
+	CREATE USER replica REPLICATION LOGIN CONNECTION LIMIT 2 ENCRYPTED PASSWORD 'StrongPassword'
+</pre>
+<div>&nbsp</div>
+
+<div>  
+# и отредактирован файл pg_hba.conf - добавлена строка с адресом ведомого:
+</div>
+
+<pre>
+	host    replication     replica         222.222.222.222/32        md5
+</pre>
+<div>&nbsp</div>
+
+<div>  
+# Останавливаем postgresql на ведомом
+</div>
+<div>  
+# Удаляем текущие данные (все содержимое каталога на ведомом) 
+</div>
+
+<pre>
+	C:\Program Files\PostgreSQL\9.5\data
+</pre>
+<div>&nbsp</div>
+
+<div>  
+# Создаем начальную резервную копию с Работающего Ведущего (через командную строку на ведомом, понадобится время):
+</div>
+
+<pre>	
+	pg_basebackup -P -R -X stream -c fast -h 111.111.111.111 -U replica -D "C:\Program Files\PostgreSQL\9.5\data"
+</pre>
+<div>&nbsp</div>
+ 
+
+ 
+<div>  
+# 5. Настроить ведомый сервер - файл postgresql.conf:
+</div>
+<pre>
+	hot_standby = on
+</pre>
+<div>&nbsp</div>
+ 
+<div>  
+# 6. Настроить копирование WAL-файлов из каталога архива ведомого сервера в рабочий каталог ведомого сервера с помощью модуля pg_standby:
+</div>
+
+<div>  
+# Для этого, содать файл "recovery.conf" в каталоге "C:\Program Files\PostgreSQL\9.5\data" с содержимым:
+</div>
+
+<pre>
+	standby_mode = 'on'
+	restore_command = '"\C:\\Program Files\\PostgreSQL\\9.5\\bin\\pg_standby.exe" -d -s 5 -t "\C:\\Program Files\\PostgreSQL\\9.5\\data\\pgsql.trigger.5442"... "\C:\\Test_Backup_WAL" "\%f" "\C:\\Program Files\\PostgreSQL\\9.5\\data\\pg_xlog" "%r" 2>>standby.log'
+
+	# recovery_end_command = 'del "\C:\\Program Files\\PostgreSQL\\9.5\\data\\pgsql.trigger.5442"'
+</pre>
+<div>&nbsp</div>
+ 
+<div>  
+# 7. Запустить  Postgresql на ведомом.
+</div>
+ 
+
+<div>&nbsp</div>
+<h3> ## На Ведущем сервере: </h3>
+
+ <div>  
+# 8. Настроить транспортировку WAL-файлов из каталога архива Ведущего сервера в каталог архива ведомого сервера (серверов), например, с помощью отдельного скрипта.
+</div>
+<div>&nbsp</div>
+
+ <div>  
+# 9. Настроить периодическую очистку каталога архива WAL-файлов Ведущего сервера и, при необходимости, каталога архива WAL-файлов ведомого сервера (серверов), например, с помощью отдельного скрипта.
+<div>&nbsp</div>
+
+<details>
+<summary>
+Протестированный PowerShell скрипт решающий обе задачи п.8 и п.9 представлен ниже:
+</summary>
+ 	<pre> 	
+# PowerShell script for file shipping and optional deleting from source directory
+
+# Set source files directory
+[string]$sourceDirectory = "C:\Test_Backup_WAL\*"
+
+# Set  destination files directory
+$destinationDirectory =  "\\222.222.222.222\c$\Test_Backup_WAL"
+
+# Set local path to save log
+$myPath = "C:\Logs\FileShippingLog\"
+
+# Set file age limits for delete (in days)
+$myRemoveDateDeepLimit = 5                        # ## 5 days old or any other value
+
+# Set copy files flag
+$myCopyFlag  = 1                                  # ## 1 - copy files new from source to destination
+
+# Set remove old files flag
+$myOldFilesFlag  = 1                              # ## 1 - delete old file by age in source
+
+# Set remove duplicate files flag
+$myDuplicateFilesFlag  = 1                        # ## 1 - delete old file by match (duplicate) in source
+
+# Set tic hour (in seconds)
+$myTic = 60                                       # ## 60 seconds delay or any other value
+
+
+### Optional settings - connecting network drive
+# Set network connection
+$myDiskAdd = 1                                   # ## 1 -  connect network drive 
+$myDiskLetter = "X:"                             # ## drive letter
+$myDisk = "\\222.222.222.222\c$"                 # ## drive path
+$myFolder = "\Test_Backup_WAL"                   # ## destination directory
+
+
+
+Write-Host Proceed the program
+
+While ($true) 
+{
+ 
+### Special part:  Connecting network drive and changing destination directory
+
+if ($myDiskAdd -eq 1) 
+{
+ if (!(Test-Path($myDiskLetter))) 
+ { 
+  Write-Host Try connecting network drive -ForegroundColor Green
+  Net use $myDiskLetter $myDisk 
+  Read-Host "Press any key" 
+  if (Test-Path($myDiskLetter))
+  { 
+   Write-Host Network drive has connected successfully -ForegroundColor Green
+  }
+  else
+  {
+   Write-Host Network drive error -ForegroundColor Red
+  }
+ }
+ else 
+ { 
+  # Write-Host Network drive has already connected 
+  # Write-Host Do nothing
+ }
+  
+  # Write-Host Check parameters $destinationDirectory
+  $destinationDirectory = $myDiskLetter + $myFolder
+}
+
+### The end of Special part
+ 
+ # get date
+ $currentDate = "" + (Get-Date).ToString('yyyy-MM-dd hh:mm')
+
+ # get age limits
+ $limit = (Get-Date).AddDays(-$myRemoveDateDeepLimit)
+
+ # Init log file name
+ if(Test-Path $myPath) 
+ {
+  $myFullPath = $myPath + "CopyAndDeleteFilesLog" + ".txt"
+
+
+  # Initialize log variable
+  $LogVar = "";
+
+
+  if ($myCopyFlag -eq 1)
+  {
+   # Replace files in destination directory
+
+   if(Test-Path($destinationDirectory)) 
+   {
+
+    $exclude = Get-ChildItem -recurse $destinationDirectory
+
+    Copy-item -Force -Recurse  $sourceDirectory -Destination $destinationDirectory -Exclude $exclude; 
+    $LogVar = "Directory " + $destinationDirectory + "  has updated " + $currentDate + ""; 
+    # Write-Host $LogVar; 
+    $LogVar | out-file -filepath $myFullPath -append -width 200  
+   }
+   else
+   {
+    $LogVar = $destinationDirectory + " Destination directory has not been reachable "; 
+    $LogVar | out-file -filepath $myFullPath -append -width 200 
+   }
+    # Write-Host Copy has ended successfully
+  }
+
+
+  # Write-Host Let check old files and delete it if necessary
+
+  if ($myOldFilesFlag -eq 1)
+  {
+
+   $items = (Get-ChildItem -Path $sourceDirectory | Where-Object { !$_.PSIsContainer -and $_.CreationTime -lt $limit })
+
+   if ($items)
+   {
+    if ($myDuplicateFilesFlag -eq 1)
+    {
+     # Write-Host Delete old duplicate files
+
+     $matches = Compare-Object $items (Get-ChildItem $destinationDirectory) -Property Name -IncludeEqual -ExcludeDifferent
+     foreach ($file in $matches) 
+     {
+      $result = $sourceDirectory.Substring(0,$sourceDirectory.Length - 1) + $file.Name
+      # Write-Host $result
+      Remove-Item ($sourceDirectory.Substring(0,$sourceDirectory.Length - 1) + $file.Name)
+
+      $LogVar = "Deleted file " + $sourceDirectory.Substring(0,$sourceDirectory.Length - 1)  + $file.Name + "   " + $currentDate + ""; 
+      $LogVar | out-file -filepath $myFullPath -append -width 200 
+     }
+
+    }
+    else
+    {
+     # Write-Host Delete all old files
+
+     foreach ($file in $items)
+     {
+      $result = $sourceDirectory.Substring(0,$sourceDirectory.Length - 1) + $file.Name
+      # Write-Host $result
+      Remove-Item ($sourceDirectory.Substring(0,$sourceDirectory.Length - 1) + $file.Name)
+
+      $LogVar = "Deleted file " + $sourceDirectory.Substring(0,$sourceDirectory.Length - 1)  + $file.Name + "   " + $currentDate + ""; 
+      $LogVar | out-file -filepath $myFullPath -append -width 200  
+     }
+    }
+   }
+  }
+  else
+  {
+   if($myOldFilesFlag -eq 0)
+   {
+    if($myDuplicateFilesFlag -eq 1)
+    {
+     # Write-Host Delete all duplicate files
+
+     $items = (Get-ChildItem -Path $sourceDirectory | Where-Object { !$_.PSIsContainer })
+
+     if ($items)
+     {
+      $matches = Compare-Object $items (Get-ChildItem $destinationDirectory) -Property Name -IncludeEqual -ExcludeDifferent
+
+      foreach ($file in $matches) 
+      {
+       $result = $sourceDirectory.Substring(0,$sourceDirectory.Length - 1) + $file.Name
+       # Write-Host $result
+       Remove-Item ($sourceDirectory.Substring(0,$sourceDirectory.Length - 1) + $file.Name)
+
+       $LogVar = "Deleted file " + $sourceDirectory.Substring(0,$sourceDirectory.Length - 1)  + $file.Name + "   " + $currentDate + ""; 
+       $LogVar | out-file -filepath $myFullPath -append -width 200  
+      }
+     }
+    }
+    else
+    {
+     # Write-Host Do nothing
+    }
+   }
+  }
+
+  # Write-Host End iteration
+
+ }
+ else
+ {
+  Write-Host Update skipped. Sorry but Log file directory not defined
+ }
+ Write-Host hour tic
+ sleep -seconds $myTic
+}
+
+
+
+
+ </pre>
+</details>
+</body>

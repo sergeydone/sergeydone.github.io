@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Postgresql DB replication">
+<meta name="keywords" content="Postgresql, replication">
+<title>Postgresql DB replication</title>
+</head>
+<body>
+<nav> <a href = "index.html"> --- Up </a></nav>
+
+<h1>Postgresql DB replication  </h1>
+
+<h2> ### Протестирована настройка и работа потоковой репликации БД Postgresql. Порядок настройки серверов описан ниже.</h2>
+
+
+
+<code>  </code>
+<div>   </div>
+<div>&nbsp</div>
+
+
+
+
+<h3> ## Настраиваем Ведущий (ip: 111.111.111.111) </h3>
+ 
+<div>
+# Создаем пользователя репликации:
+</div>
+
+
+<pre>
+	CREATE USER replica REPLICATION LOGIN CONNECTION LIMIT 2 ENCRYPTED PASSWORD 'StrongPassword'
+</pre>
+<div>&nbsp</div>
+
+<div>
+# Редактируем pg_hba.conf - добавляем строку с адресом ведомого:
+</div>
+
+<pre>
+	host    replication     replica         222.222.222.222/32        md5
+</pre>
+<div>&nbsp</div>
+
+<div>
+# Редактируем postgresql.conf:
+</div>
+
+<pre>
+	wal_level = hot_standby
+
+	max_wal_senders = 5 # подбираем нужное нам значение
+
+	wal_keep_segments = 32 # подбираем нужное нам значение
+</pre>
+<div>&nbsp</div>
+ 
+<div>
+# Перезапускаем postgres на Ведущем
+</div>
+ 
+
+ 
+
+<h3> ## Настраиваем ведомый (ip: 222.222.222.222) </h3>
+
+ 
+<div>
+# Останавливаем postgresql на ведомом
+</div>
+ 
+<div>
+# Удаляем текущие данные (все содержимое каталога, но можно предварительно его забекапить)
+</div>
+
+<pre>
+	C:\Program Files\PostgreSQL\9.5\data
+</pre>
+<div>&nbsp</div>
+ 
+<div>
+# Создаем начальную резервную копию с работающего Ведущего (в командной строке на ведомом, понадобится время):
+</div>
+
+<pre>
+	pg_basebackup -P -R -X stream -c fast -h 111.111.111.111 -U replica -D "C:\Program Files\PostgreSQL\9.5\data"
+</pre>
+<div>&nbsp</div>
+ 
+<div>
+# Настраиваем ведомый сервер - postgresql.conf:
+</div>
+
+<pre>
+	hot_standby = on
+</pre>
+<div>&nbsp</div>
+ 
+<div>
+# Настраиваем (созданный автоматически) recovery.conf на ведомом (опционально):
+</div>
+<div>
+# В файле мы увидим две строки:
+</div>
+
+<pre>
+	standby_mode = 'on'
+
+	primary_conninfo = 'user=replica password=Password host=111.111.111.111 port=5432 sslmode=prefer sslcompression=1 krbsrvname=postgres target_session_attrs=any'
+</pre>
+<div>&nbsp</div>
+
+<div>
+# Добавляем триггер файл
+</div>
+
+<pre>
+	trigger_file = 'switch_to_master'
+</pre>
+<div>&nbsp</div>
+
+<div>
+# Редактируем файл ведомого pg_hba.conf - меняем последнюю строку
+</div>
+
+<pre>
+	host    replication     replica         111.111.111.111/32        md5
+</pre>
+<div>&nbsp</div>
+
+
+<div>
+# Запускаем ведомый
+</div>
+
+<pre>
+	service postgresql start
+</pre>
+<div>&nbsp</div> 
+
+
+</body>

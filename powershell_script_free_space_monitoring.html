@@ -1,0 +1,257 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Powershell script for drive free space monitoring">
+<meta name="keywords" content="Powershell, script,drive, space, monitoring">
+<title>Powershell script for drive free space monitoring</title>
+</head>
+<body>
+<nav> <a href = "index.html"> --- Up </a></nav>
+
+<h1>Powershell script for drive free space monitoring </h1>
+
+<h2>Powershell script for drive free space monitoring and email alert raising (for Win 2008r2) </h2>
+
+<pre> 
+# Powershell script for drive free space monitoring and email alert raising (for Win 2008r2)
+
+ 
+# set email credential (Optional)
+# $UserName = "LOGINNAME"
+# $Pass = ConvertTo-SecureString "..." -AsPlainText -Force
+# $MyCred = New-Object -TypeName PSCredential -ArgumentList $UserName, $Pass
+
+# Set minimal free dick space before alert, GB
+$myAlertSize = 3;
+
+# Set minimum free disk percentage before alert, %
+$myAlertUsage = 1; 
+
+# Set report hour
+$myTicHour = "07"
+
+# Set check interval time, sec
+$myTic = 3600
+
+# Set sender address
+$MyAddress = 'NAME@DOMAIN'
+
+# Set receiver address
+$myReceiver = 'NAME@DOMAIN'
+
+# Set second receiver address
+$myReceiver2 = 'NAME@DOMAIN'
+
+# Set email subject
+$myInfoSubject = 'Information: Disk Info. '
+
+# Set Alert email subject
+$myAlertSubject = 'Alert: Disk Alert!'
+
+# Set smtp server
+$mySMTPServer = 'IPADDRES'
+
+# Set send email flag
+$mySaveToSendEmail = 0
+
+# Set saving log flag
+$mySaveToLogFile = 1
+
+# Set local path to save log
+$myPath = "C:\Logs\MonitoringLogs"
+
+# start workflow !
+
+# Define function for saving log
+function Save-LocalMessage
+{
+                param ($Subject, $Body, $To)
+                # Init log file name components
+                $myName = $env:computername
+                $myCurrentTime = Get-Date -f "yyyyMMddHHmmss"
+                # Save log file
+                if((Test-Path $myPath) -or ($mySaveToLogFile -eq 1))
+                {
+                                $myFullPath = $To + "\"+ $myCurrentTime + "_" + $myName + "_"+ "MonLog" + ".txt"
+                                $LogVar = "" + $Body
+                                $LogVar | out-file -filepath $myFullPath -width 200 
+                                Write-Host Log has been created successfully
+                }
+                else
+                {
+                                Write-Host  Sorry but Log file directory not defined
+                }
+}
+
+# Get local ip-address (name)
+# $myIPAddress = (Get-NetIPConfiguration | Where-Object { $_.IPv4DefaultGateway -ne $null -and $_.NetAdapter.Status -ne "Disconnected" } ).IPv4Address.IPAddress
+$myIPAddress = $env:computername
+
+while($true) 
+{
+                # get current hour
+                $currentHour = Get-Date -f "HH"
+
+                # Initialize or clear disk object array
+                $myDiskArray = @()
+
+                # Initialize or clear disk information array
+                $myObjDiskArray =@()
+
+                # Clear Alert flag
+                $myAlertFlag = 0
+        
+                # Clear result data
+                $resultData = ''
+
+                # Get local disks information
+                $myDisk = Get-WmiObject -Class Win32_LogicalDisk
+
+                if($myDisk.Length)
+                {
+                                for($i = 0; $i -lt $myDisk.Length; $i++)
+                                {
+                                                if($myDisk[$i].DriveType -eq 3) {
+                                                                $myDiskArray += $myDisk[$i]
+                                                }
+                                }
+                }
+                else 
+                {
+                                if($myDisk[$i].Type -eq 3) {
+                                                $myDiskArray += $myDisk
+                                }
+                }
+               
+                # Check all disks
+                foreach($el in $myDiskArray)
+                {
+                                # Define properties
+                                $properties = @{
+                                DiskLetter = $el.Drive
+                                                DiskSize = [Math]::Round($el.Size /1Gb)
+                                                DiskFreeSpace = [Math]::Round($el.FreeSpace /1Gb)
+                                                DiskUsage = [Math]::Round(([Math]::Round($el.FreeSpace)) / ([Math]::Round($el.Size)) * 100)
+                                }
+                                # Create object
+                                $obj = New-Object -TypeName PSObject -Property $properties
+                                # Check disk space usage and set alert flag
+                                if (($obj.DiskFreeSpace -lt $myAlertSize) -or ($obj.DiskUsage -lt $myAlertUsage))
+                                {
+                                                $myAlertFlag = 1
+                                }
+                # Add object into array
+                $myObjDiskArray += $obj
+                }
+
+                # Check Alert flag
+                if ($myAlertFlag -eq 1)
+                {
+                                # Prepare alert information
+                                foreach($obj in $myObjDiskArray)
+                                {
+                                                if (($obj.DiskFreeSpace -lt $myAlertSize) -or ($obj.DiskUsage -lt $myAlertUsage))
+                                                {
+                                                                $myModSubject  = $myAlertSubject
+                                                }
+                                                else
+                                                {
+                                                                $myModSubject = $myInfoSubject
+                                                }
+                                                $resultData = $resultData  + '' + $myModSubject + '  ' + $myIPAddress + '  ' + ' Total size: ' + $obj.DiskSize +  ' GB ,  Free space:' + '  ' + $obj.DiskFreeSpace + ' GB --> (' + $obj.DiskUsage + ') % ' + " . `r`n"
+                                }
+                                # Show alert information
+                                Write-Host $resultData
+
+                                # Modify letter subject
+                                $mySubject = $myModSubject + $myIPAddress
+                                if($mySaveToSendEmail -eq 1)
+                                {
+                                                # Send email
+                                                if($MyCred)
+                                                {
+                                                                Send-MailMessage -From $MyAddress -To $myReceiver -Cc $myReceiver2 -Subject $mySubject -SmtpServer $mySMTPServer -Credential $MyCred -Body $resultData -Encoding UTF8
+                                                }
+                                                else
+                                                {
+                                                  Write-Host "Sorry. Email credential not defined"
+                                                }
+                                }
+
+                                # Save local log
+                                if($mySaveToLogFile -eq 1)
+                                {
+                                                Save-LocalMessage -Subject $mySubject -Body $resultData -To $myPath
+                                }
+                }
+
+                # Check time to send report
+                else
+                {
+                                if($currentHour -eq $myTicHour)
+                                {
+                                                # Prepare info information
+                                                $myModSubject = $myInfoSubject
+
+                                                # Prepare information
+                                                foreach($obj in $myObjDiskArray)
+                                                {    
+                                                 $resultData = $resultData  + '' + $myModSubject + '  ' + $myIPAddress + '  ' +
+
+                                                                                                                $obj.DiskLetter +
+
+                                                      ' Total size: ' + ($obj.DiskSize) +  ' GB ,  Free space:' +
+
+                                                                                                      ' ' + ($obj.DiskFreeSpace) + ' GB --> (' +
+
+                                                                                                                $obj.DiskUsage + ' % ' + ") . `r`n"
+
+                                                }
+
+                                                # Show alert information
+                                                Write-Host $resultData
+
+                                                # Modify letter subject
+                                                $mySubject = $myModSubject + $myIPAddress
+
+                                                # Send email                                     
+                                                if($mySaveToSendEmail -eq 1)
+                                                {
+                                                                if($MyCred)
+                                                                {
+                                                                                Send-MailMessage -From $MyAddress -To $myReceiver -Cc $myReceiver2 -Subject $mySubject -SmtpServer $mySMTPServer -Credential $MyCred -Body $resultData -Encoding UTF8
+                                                                }
+                                                                else
+                                                                {
+                                                               Write-Host "Sorry. Email credential not defined"
+                                                                }
+                                                }
+
+                                                # Save local log
+                                                if($mySaveToLogFile -eq 1)
+                                                {
+                                                                Save-LocalMessage -Subject $mySubject -Body $resultData -To $myPath
+                                                }             
+                                }
+                                else
+                                {
+                                                Write-Host "Do nothing"
+                                }
+                }
+                Write-Host $currentHour
+                sleep -seconds $myTic
+}
+
+ 
+ </pre>
+
+ 
+
+
+
+
+</body>
+</html>

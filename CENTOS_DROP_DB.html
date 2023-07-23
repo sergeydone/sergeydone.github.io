@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="CENTOS POSTGRESQL DROP DB">
+<meta name="keywords" content="CENTOS, POSTGRESQL, linux, drop">
+<title>CENTOS POSTGRESQL DROP DB</title>
+</head>
+<body>
+<nav> <a href = "index.html"> --- Up </a></nav>
+
+<h1>CENTOS PostgreSQL DROP DB </h1>
+
+<h2>## для сеанса PSQL</h2>
+
+
+<div># Находим подключенные к БД сеансы:</div>
+<code>SELECT * FROM pg_stat_activity WHERE datname = '&ltdatabase_name&gt'; </code>
+<div>&nbsp</div>
+
+<div># Отключаем сессии подключенные к интересующей нас БД с именем &ltdatabase_name&gt:</div>
+<code>SELECT	pg_terminate_backend (pid) FROM	pg_stat_activity WHERE	pg_stat_activity.datname = '&ltdatabase_name&gt';</code>
+<div>&nbsp</div>
+
+<div># Удаляем БД:</div>
+<code>DROP DATABASE &ltdatabase_name&gt</code>
+<div>&nbsp</div>
+
+
+<h2>## для сеанса postgres:</h2>
+<code>$ dropdb &ltdatabase_name&gt</code>
+<div>&nbsp</div>
+
+</body>
+</html>

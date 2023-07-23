@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Postgresql database settings">
+<meta name="keywords" content="Postgresql, database, set">
+<title>Postgresql settings</title>
+</head>
+<body>
+<nav> <a href = "index.html"> --- Up </a></nav>
+
+<h1>Postgresql settings  </h1>
+
+<h2> ### Postresql settings commands </h2>
+
+
+
+<code>  </code>
+<div>   </div>
+<div>&nbsp</div>
+
+<h3>## Show settings </h3>
+<pre>
+	show all;
+</pre>
+<div>&nbsp</div>
+
+	
+<h3>## Show settings detail </h3>
+<pre>
+	select * from pg_settings;
+</pre>
+<div>&nbsp</div>
+
+
+<h3>## Configuring </h3>
+<pre>
+	SET configuration_parameter TO DEFAULT;
+</pre>
+<div>&nbsp</div>
+
+
+<h3>## Detailed configuring </h3>
+<pre>
+	UPDATE pg_settings SET settings = reset_val WHERE name = 'configuration_parameter' ;
+</pre>
+<div>&nbsp</div>
+
+
+
+<div>&nbsp</div>
+	
+</body>
+</html>

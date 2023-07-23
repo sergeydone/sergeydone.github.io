@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Postgresql version update">
+<meta name="keywords" content="Postgresql, version, update">
+<title>Postgresql DB maintenence</title>
+</head>
+<body>
+<nav> <a href = "index.html"> --- Up </a></nav>
+
+<h1>Postgresql version update  </h1>
+
+<h2> ### Обновление мажорной версии СУБД Postgresql без процедуры "backup -> restore" на Windows  </h2>
+
+
+
+<code>  </code>
+<div>   </div>
+<div>&nbsp</div>
+
+<h3>## Протестирована возможность обновления мажорной версии ПО Postgresql без процедуры "backup -> restore". Время выполнения операции на тестовой БД размером 30 Gb составило 20 секунд. Порядок дейсвий описан ниже:</h3>
+
+<div>
+# Для быстрого обновления можно воспользоваться утилитой Postgresql  "pg_upgrade"
+</div> 
+<div>&nbsp</div>
+
+
+<div>
+# 1. Проверить наличие актуального бекапа рабочей БД Postgresql
+</div>
+<div>&nbsp</div>
+
+<div>
+# 2. Сделать бекап настроек старой БД Postgresql  (файлы "pg_hba.conf"  и  "postgresql.conf")
+</div>
+<div>&nbsp</div>
+
+<div>
+# 3. Установить новую версию Postgresql в новый каталог (по умолчанию устанавливается в новый)
+</div> 
+<div>&nbsp</div>
+
+<div>
+# 4. Остановить и старую и новую службы Postgresql
+</div> 
+<div>&nbsp</div>
+
+<div>
+# 5. Отредактировать файл "pg_hba.conf" и старой и новой версии Postgresql, разрешив доступ без пароля:
+</div>
+
+<pre>
+	host      all             all         127.0.0.1/0                 trust
+	host      all             all             ::1/128                 trust
+</pre>
+<div>&nbsp</div>
+
+<div>
+# 6. Создать временный каталог для сохранения лога обновления с полными правами для группы "everyone", например
+</div>
+
+<pre>
+	C:\Install\TEMPLOG
+</pre>
+<div>&nbsp</div>
+ 
+<div>
+# 7. Запустить cmd с правами администратора, перейти в созданный каталог:
+</div>
+
+<pre>
+	cd C:\Install\TEMPLOG
+</pre>
+<div>&nbsp</div>
+
+
+<div>
+# 8. Запустить процедуру обновления "pg_upgrade" из каталога новой версии Postgresql с набором предопределенных параметров и ключом --check в конце, где параметры
+</div>
+<div>
+--old-bindir  - папка с исполняемыми файлами старой версии Postgresql  
+</div>
+<div>
+--new-bindir  - папка с исполняемыми файлами новой версии Postgresql
+</div>
+<div>
+--old-datadir - папка с файлами БД старой версии Postgresql
+</div>
+<div>
+--new-datadir - папка с файлами БД новой версии Postgresql
+</div>
+<div>
+-U postgres   - суперпользователь Postgresql
+</div>
+<div>
+--link        - ключ если решено не копировать файлы БД а использовать текущие файлы с соответствующими изменениями структуры данных
+</div>
+<div>
+--check       - ключ в конце команды определяющий что будет выполнена только проверка возможности обновления, но никаких действий выполняться не будет,
+</div>
+<div>
+например:
+</div>
+
+<pre>
+	"C:\Program Files\PostgreSQL\13\bin\pg_upgrade.exe" --old-bindir "C:\Program Files\PostgreSQL\9.5\bin" --new-bindir "C:\Program Files\PostgreSQL\13\bin" --old-datadir "C:\Program Files\PostgreSQL\9.5\data" --new-datadir "C:\Program Files\PostgreSQL\13\data" -U postgres --link --check
+</pre>
+<div>&nbsp</div>
+
+<div>
+# 9. При успешном результате проверки повторно запустить процедуру "pg_upgrade" из каталога новой версии Postgresql без ключа --check в конце:
+</div>
+
+<pre>
+	"C:\Program Files\PostgreSQL\13\bin\pg_upgrade.exe" --old-bindir "C:\Program Files\PostgreSQL\9.5\bin" --new-bindir "C:\Program Files\PostgreSQL\13\bin" --old-datadir "C:\Program Files\PostgreSQL\9.5\data" --new-datadir "C:\Program Files\PostgreSQL\13\data" -U postgres --link
+</pre>
+<div>&nbsp</div> 
+
+<div>
+# 10. В результате выполнения операции с ключем  --link потребление HDD не изменится, но после первого же запуска новой версии Postgresql пропадет возможность вернуться к предыдущей.
+</div>
+<div>&nbsp</div> 
+
+<div>
+# 11. Перенести рабочие настройки из резервных копий конфигурационных файлов "pg_hba.conf"  и  "postgresql.conf" в те же конфигурационный файлы новой версии  Postgresql  
+</div>
+<div>&nbsp</div>
+
+
+<div>
+# 12. После проверки работы БД на новой версии Postgresql можно удалить старые каталоги с данными и исполняемыми файлами оставшиеся от предыдущей версии Postgresql (частично это выпоняется ручным запуском скрипта "delete_old_cluster.bat" который автоматически содается в конце операции обновления во временной папке логов обновления)
+</div>
+<div>&nbsp</div>
+<div>&nbsp</div>
+
+</body>

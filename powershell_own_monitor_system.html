@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Powershell">
+<meta name="keywords" content="Powershell">
+<title>Powershell</title>
+</head>
+<body>
+<nav> <a href = "index.html"> --- Up </a></nav>
+
+<h1>
+
+# ### Powershell script for own monitoring system with grouping results by the keywords. Script checks log files in custom directory, parses this files and sends email with alert or information. Script creates its own log in other directory and removes processed log files from working directory.
+</h1>
+
+
+<pre>
+# set email credential (optional)
+# $UserName = "EMAILLOGIN"
+# $Pass = ConvertTo-SecureString '...' -AsPlainText -Force
+
+# Set local path to analyzing logs
+$myPath =  "C:\Logs\MonitoringLogs\"
+
+# Set archiving logs option
+$mySaveToLogFile = 1
+
+# Set local path to archiving logs
+$myPathToSave = "C:\Logs\MonitoringLogs\Arch\"
+
+# Set local archive log file name
+$myArchFileName = "myMonitoringLog"
+
+# Set send report hour
+$myTicHour = "08"
+
+# Set send report minute
+$myTicMinute = "05"
+
+# Set check interval time, sec
+$myTic = 60
+
+# Set sender address
+$MyAddress = 'EMAIL@DOMAIN'
+ 
+# Set receiver address
+$myReceiver = 'EMAIL@DOMAIN'
+
+# Set second receiver address for alert reports(Alerts only)
+$myReceiver2 = 'EMAIL@DOMAIN'
+
+# Set receiver's address for daily reports(Info only)
+$myReceiver3 = 'EMAIL@DOMAIN', 'EMAIL@DOMAIN', 'EMAIL@DOMAIN'
+
+# Set email Information subject
+$myInfoSubject = 'Info. Monitoring EMAILCAPTION '
+
+# Set email Alert subject
+$myAlertSubject = 'Alert! Monitoring EMAILCAPTION '
+
+# Set smtp server
+$mySMTPServer = '1.1.1.1'
+
+# Set alert string template
+$myErrTemp = 'Alert'
+
+# Set analized amout of rows in input log files
+$myRowNumbers = 50
+
+# Set keywords to separate report by sections (grouping results)
+$myPartNameArray = @('Alert', 'backup', 'Disk', 'CPU', 'Ping')
+
+# ## start workflow !
+# Define send mail function
+function My-SendEmail-Message
+{
+                param ($Subject, $Body, $CurrentReceiver)
+                if($MyCred)
+                                {
+                                                Send-MailMessage -From $MyAddress -To $myReceiver -Cc $currentReceiver -Subject $Subject -SmtpServer $mySMTPServer -Credential $MyCred -Body $Body -Encoding UTF8
+                                }
+                                else
+                                {
+                                        Write-Host "Sorry. Email credential not defined"
+                                }
+}
+
+# Define local message save function
+function My-SaveLocal-Message
+{
+                param ($Subject, $Body)
+                if((Test-Path $myPathToSave) -and ($mySaveToLogFile -eq 1))
+                {
+                                $myFullPath = $myPathToSave + $myArchFileName + ".txt"
+                                $LogVar = '' + $Body
+                                $LogVar | out-file -filepath $myFullPath -append -width 200
+                                Write-Host Log has been created successfully
+                }
+                else
+                {
+                                Write-Host  Sorry but Log file directory not defined
+                }
+}
+ 
+# Define removing processed log files function
+function My-DeleteLocal-Logs
+{
+                param ($myFileName)
+                if(Test-Path $myPath)
+                {
+                                $items = (Get-ChildItem -Path $myPath | Where-Object { !$_.PSIsContainer })
+                                if ($items)
+                                {
+                                                #
+                                                if ($myFileName)
+                                                {
+                                                                foreach ($file in $items)
+                                                                {
+                                                                                if ($file.Name -eq $myFileName)
+                                                                                {             
+                                                                                                Remove-Item ($myPath.Substring(0,$myPath.Length) + $file.Name)
+                                                                                }
+                                                                }
+                                                }
+                                                else
+                                                {             
+                                                                foreach ($file in $items)
+                                                                {
+                                                                                Remove-Item ($myPath.Substring(0,$myPath.Length) + $file.Name)
+                                                                }
+                                                }
+                                }
+                }
+}
+
+# Initialize email credential
+if (($UserName) -and ($Pass))
+{
+                $MyCred = New-Object -TypeName PSCredential -ArgumentList $UserName, $Pass
+} else
+{
+                Write-Host "Sorry. Email credential not defined"
+}
+ 
+# Loop
+while($true) 
+{
+                # get current date
+                $currentDate = Get-Date -f "yyyy-MM-dd HH:mm:ss"
+ 
+                # get current hour
+                $currentHour = Get-Date -f "HH"
+
+                # get current minute
+                $currentMinute = Get-Date -f "mm"
+
+                # Initialize or clear messages array
+                $myLogArray = @()
+
+                # Initialize or clear alerted file names array
+                $alertFileNamesArray = @()
+
+                # Clear Alert flag
+                $myAlertFlag = 0
+
+                # Clear Report flag
+                $myReportFlag = 0
+
+        # Clear result data
+        $resultData = ''
+
+                # Initialize the subject of the message
+                $mySubject = $myInfoSubject
+
+                # Check time to report and change flag
+                if(($currentHour -eq $myTicHour) -and ($currentMinute -eq $myTicMinute))
+                {
+                                $myReportFlag = 1
+                }
+
+                # Catalog iteration
+                if(Test-Path($myPath))
+                {
+                                $myAllData = Get-ChildItem $myPath -File
+                                foreach ($file in $myAllData)
+                                { 
+                                                # Get full path to log file
+                        $myFullPath = $myPath + "\" +$file.Name
+                                               
+                                                # Get data for current report
+                        $myReport = Get-Content -Tail $myRowNumbers $myFullPath | Select-Object -last $myRowNumbers
+
+                                                # Find marker word "Alert"
+                        $myErrCount = ($myReport | Select-String -Pattern $myErrTemp ).count
+
+                                                # Check alert match
+                                                if ( $myErrCount -gt 0)
+                                                {
+                                                                $myAlertFlag = 1
+
+                                                                # Save filenames with alert
+                                                                $alertFileNamesArray += $file.Name
+                                                }
+
+                                                # Convert report object to report string
+                                                $resultData = $myReport | Out-String -Stream
+
+                                                # Add file content into log array
+                                                $myLogArray += $resultData
+                                }
+                }
+
+                # Change subject content
+                if ($myAlertFlag -eq 1)
+                {
+                                # Change subject conent
+                                $mySubject = $myAlertSubject
+                }
+
+                # Check time to report status and send report
+                if (($myReportFlag -eq 1) -and ($myLogArray.Length -gt 0))
+                {
+                                # Change body content
+                                $myFirstLineFlag =  1
+                                $myBodySave = ''
+                                $myBodyEmail = ''
+
+                                # Initialize temporary result arrays
+                                $myProcessingArray = @()
+                                $myNonProcessingArray = @()
+
+                                # Processing results with section grouping via keywords massives
+                                foreach($myPartName in $myPartNameArray)
+                                {
+                                                # Prepare current regular expression
+                                                $myRegExpr = '.*?' + $myPartName + '' + '(.*?)'
+
+                                                # Check results with regular expression
+                                                foreach($myLine in $($myLogArray -split "`r`n"))
+                                                {
+                                                                $myMachFlag = 0
+
+                                                                # Result has matched
+                                                                if ($myLine -match $myRegExpr)
+                                                                {
+                                                                                $myMachFlag = 1
+
+                                                                                # Add the string to the temporary Array with matches results
+                                                                                $myProcessingArray += $myLine
+                                                                }
+
+                                                                # Result hasn't matched               
+                                                                if($myMachFlag -eq 0)
+                                                                {
+                                                                                # Add the string to the temporary Array without matches results
+                                                                                $myNonProcessingArray += $myLine
+                                                                }
+                                                }
+
+                                                # Init temporary results array with empties
+                                                $myLogArray = @()
+
+                                                # Init temporary results array by temporary Array without matches results
+                                                foreach($line in $($myNonProcessingArray-split "`r`n"))
+                                                {             
+                                                        $myLogArray += $line
+                                                }
+
+                                                # Init temporary Array without matches results
+                                                $myNonProcessingArray =@()
+                                }
+
+                                # Prepare sectioning results
+                                foreach($line in $($myProcessingArray -split "`r`n"))
+                                {
+                                                if ($myFirstLineFlag -eq 1) { $newLine = ""} else { $newLine = "`r`n"}
+
+                                                                $myBodySave  += '' + $newLine  + $currentDate + ' ' + $line
+                                                                $myBodyEmail  += '' + $newLine  + $line + "`r`n"
+                                                                $myFirstLineFlag = 0
+                                }
+
+                                # Prepare non sectioning results
+                                foreach($line in $($myLogArray -split "`r`n"))
+                                {
+                                                if ($myFirstLineFlag -eq 1) { $newLine = ""} else { $newLine = "`r`n"}
+
+                                                if($line.Length -gt 10)
+                                                {
+                                                                $myBodySave  += '' + $newLine  + $currentDate + ' ' + $line
+                                                                $myBodyEmail  += '' + $newLine  + $line + "`r`n"
+                                                                $myFirstLineFlag = 0
+                                                }
+                                }
+
+                                # Save and send report
+                                My-SaveLocal-Message -Subject $mySubject -Body $myBodySave
+                My-SendEmail-Message -Subject $mySubject  -Body $myBodyEmail -CurrentReceiver $myReceiver3
+
+                                # Call delete local log files function
+                                My-DeleteLocal-Logs
+                }
+        else
+        {
+               # Check Alert flag status and send report
+                                if (($myAlertFlag -eq 1) -and ($myLogArray.Length -gt 0))
+                                {
+                                                # Change body content
+                                                $myFirstLineFlag = 1
+                                                $myBodySave = ''
+                                                $myBodyEmail = ''
+                                                foreach($line in $($myLogArray -split "`r`n"))
+                                                {
+                                                                if ($line -match $myErrTemp)
+                                                                {
+                                                                                if ($myFirstLineFlag -eq 1) { $newLine = ""} else { $newLine = "`r`n"}
+
+                                                                                $myBodySave  += '' + $newLine  + $currentDate + ' ' + $line
+
+                                                                                $myBodyEmail  += '' + $newLine  + $line
+                                                                                $myFirstLineFlag = 0
+                                                                }
+                                                }
+
+                                                # Save and send report
+                                                My-SaveLocal-Message -Subject $mySubject -Body $myBodySave 
+
+                                My-SendEmail-Message -Subject $mySubject  -Body $myBodyEmail -CurrentReceiver $myReceiver2
+
+                                                # Call delete local log files function
+                                                foreach ($fileName in $alertFileNamesArray)
+                                                {
+                                                        My-DeleteLocal-Logs -myFileName $fileName
+                                                }
+                                }
+                }
+
+                # Write-Host $currentHour
+                sleep -seconds $myTic
+}
+</pre>
+</body>
+</html>

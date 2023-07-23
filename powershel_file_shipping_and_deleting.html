@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="PowerShell">
+<meta name="keywords" content="PowerShell">
+<title>PowerShell</title>
+</head>
+<body>
+<nav> <a href = "index.html"> --- Up </a></nav>
+
+<h1>
+# PowerShell script for file shipping and optional deleting from source directory
+</h1>
+
+<pre>
+# Set source files directory
+[string]$sourceDirectory = "C:\Logs\MonitoringLogs\*"
+
+# Set  destination files directory
+$destinationDirectory =  "\\1.1.1.1\c$\Logs\MonitoringLogs"
+
+# Set local path to save log
+$myPath = "C:\Logs\FileShippingLog\"
+
+# Set file age limits for delete (in days)
+$myRemoveDateDeepLimit = 1                        # ## 10 days old or any other value
+
+# Set copy files flag
+$myCopyFlag  = 1                                  # ## 1 - copy files new from source to destination
+
+# Set remove old files flag
+$myOldFilesFlag  = 0                              # ## 1 - delete old file by age in source
+
+# Set remove duplicate files flag
+$myDuplicateFilesFlag  = 1                        # ## 1 - delete duplicate file by match (duplicate) in source
+
+# Set tic hour (in seconds)
+$myTic = 60                                       # ## 60 seconds delay or any other value
+
+### Optional settings - connecting network drive
+# Set network connection
+$myDiskAdd = 1                                   # ## 1 -  connect network drive
+$myDiskLetter = "X:"                             # ## drive letter
+$myDisk = "\\1.1.1.1\c$"                  # ## drive path
+$myFolder = "\Logs\MonitoringLogs"               # ## destination directory
+
+
+Write-Host Proceed the program
+
+While ($true)
+{
+
+### Special part:  Connecting network drive and changing destination directory
+if ($myDiskAdd -eq 1)
+{
+if (!(Test-Path($myDiskLetter)))
+ {
+  Write-Host Try connecting network drive -ForegroundColor Green
+  Net use $myDiskLetter $myDisk
+  Read-Host "Press any key"
+  if (Test-Path($myDiskLetter))
+  {
+   Write-Host Network drive has connected successfully -ForegroundColor Green
+  }
+  else
+  {
+   Write-Host Network drive error -ForegroundColor Red
+  }
+}
+else
+ {
+  # Write-Host Network drive has already connected
+  # Write-Host Do nothing
+}
+  # Write-Host Check parameters $destinationDirectory
+  $destinationDirectory = $myDiskLetter + $myFolder
+}
+
+### The end of Special part
+ # get date
+$currentDate = "" + (Get-Date).ToString('yyyy-MM-dd hh:mm')
+
+# get age limits
+$limit = (Get-Date).AddDays(-$myRemoveDateDeepLimit)
+
+# Init log file name
+if(Test-Path $myPath)
+ {
+  $myFullPath = $myPath + "CopyAndDeleteFilesLog" + ".txt"
+
+  # Initialize log variable
+  $LogVar = "";
+
+  if ($myCopyFlag -eq 1)
+  {
+   # Replace files in destination directory
+   if(Test-Path($destinationDirectory))
+   {
+    $exclude = Get-ChildItem -recurse $destinationDirectory
+
+    Copy-item -Force -Recurse  $sourceDirectory -Destination $destinationDirectory -Exclude $exclude;
+
+    # $LogVar = "Directory " + $destinationDirectory + "  has updated " + $currentDate + "";
+
+    # Write-Host $LogVar;
+
+    # $LogVar | out-file -filepath $myFullPath -append -width 200 
+   }
+   else
+   {
+    $LogVar = $destinationDirectory + " Destination directory has not been reachable ";
+    $LogVar | out-file -filepath $myFullPath -append -width 200
+   }
+    # Write-Host Copy has ended successfully
+  }
+
+  # Write-Host Let check old files and delete it if necessary
+  if ($myOldFilesFlag -eq 1)
+  {
+   $items = (Get-ChildItem -Path $sourceDirectory | Where-Object { !$_.PSIsContainer -and $_.CreationTime -lt $limit })
+
+   if ($items)
+   {
+    if ($myDuplicateFilesFlag -eq 1)
+    {
+     # Write-Host Delete old duplicate files
+     $matches = Compare-Object $items (Get-ChildItem $destinationDirectory) -Property Name -IncludeEqual -ExcludeDifferent
+
+     foreach ($file in $matches)
+     {
+      $result = $sourceDirectory.Substring(0,$sourceDirectory.Length - 1) + $file.Name
+      # Write-Host $result
+      Remove-Item ($sourceDirectory.Substring(0,$sourceDirectory.Length - 1) + $file.Name)
+
+      $LogVar = "Deleted file " + $sourceDirectory.Substring(0,$sourceDirectory.Length - 1)  + $file.Name + "   " + $currentDate + "";
+
+      $LogVar | out-file -filepath $myFullPath -append -width 200
+     }
+    }
+    else
+    {
+     # Write-Host Delete all old files
+     foreach ($file in $items)
+     {
+      $result = $sourceDirectory.Substring(0,$sourceDirectory.Length - 1) + $file.Name
+      # Write-Host $result
+      Remove-Item ($sourceDirectory.Substring(0,$sourceDirectory.Length - 1) + $file.Name)
+
+      $LogVar = "Deleted file " + $sourceDirectory.Substring(0,$sourceDirectory.Length - 1)  + $file.Name + "   " + $currentDate + "";
+
+      $LogVar | out-file -filepath $myFullPath -append -width 200 
+     }
+    }
+   }
+  }
+  else
+  {
+   if($myOldFilesFlag -eq 0)
+   {
+    if($myDuplicateFilesFlag -eq 1)
+    {
+     # Write-Host Delete all duplicate files
+     $items = (Get-ChildItem -Path $sourceDirectory | Where-Object { !$_.PSIsContainer })
+
+     if ($items)
+     {
+      $matches = Compare-Object $items (Get-ChildItem $destinationDirectory) -Property Name -IncludeEqual -ExcludeDifferent
+
+      foreach ($file in $matches)
+      {
+       $result = $sourceDirectory.Substring(0,$sourceDirectory.Length - 1) + $file.Name
+       # Write-Host $result
+       Remove-Item ($sourceDirectory.Substring(0,$sourceDirectory.Length - 1) + $file.Name)
+       $LogVar = "Deleted file " + $sourceDirectory.Substring(0,$sourceDirectory.Length - 1)  + $file.Name + "   " + $currentDate + "";
+       $LogVar | out-file -filepath $myFullPath -append -width 200 
+      }
+     }
+    }
+    else
+    {
+     # Write-Host Do nothing
+    }
+   }
+  }
+  # Write-Host End iteration
+}
+else
+{
+  Write-Host Update skipped. Sorry but Log file directory not defined
+}
+ 
+# Write-Host hour tic
+sleep -seconds $myTic
+}
+</pre>
+</body>
+</html>

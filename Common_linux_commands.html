@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Linux commands">
+<meta name="keywords" content="linux, commands">
+<title>Common linux commands</title>
+</head>
+<body>
+<nav> <a href = "index.html"> --- Up </a></nav>
+
+<h1>Common linux commands  </h1>
+
+
+<h2>First identification </h2>
+<pre> 
+whoami
+
+echo $0
+
+history
+
+!2
+
+Ctrl+L
+
+pwd
+</pre>
+
+<h2> Files and Directories </h2>
+<pre>
+ls
+ls -l
+ls -a
+
+cd ~
+cd ..
+
+mkdir name
+
+mv name1 name2
+
+touch name1
+
+rm
+rm-r
+
+cat name
+more name
+less name
+head name
+tail -n 5 name
+</pre>
+
+<h2> Installation </h2>
+<pre>
+apt
+apt-get
+ap list
+apt update
+
+apt install nano
+apt remove nano
+</pre>
+
+<h2> Redirection </h2>
+<pre>
+cat name1 > name2
+cat name1 name2 > name3
+</pre>
+
+<h2> Finding </h2>
+<pre>
+grep 
+grep -i
+grep -i -r
+grep -ir
+
+find /path
+find -type d
+find -type -f -name "..."
+</pre>
+
+
+<h2> Chaining </h2>
+<pre>
+command1; command2; command3
+command1 && command2 && command3
+command1 || command2
+</pre>
+
+<h2> Piping </h2>
+<pre>
+ls /namedir | less
+
+\ "- next line to command (break up)"
+</pre>
+
+
+<h2> Environment variables </h2>
+<pre>
+printenv
+printenv PATH
+echo $PATH
+export VARNAME=VALUE
+</pre>
+
+<h2> Process management </h2>
+<pre>
+ps
+ps -a
+ps -aux
+ps -aux | grep Name
+ps -axjf
+pstree
+
+systemctl start Name
+systemctl stop Name
+systemctl restart Name
+systemctl status Name
+systemctl is-active Name
+systemctl is-enabled Name
+systemctl | list-units
+systemctl | list-units -t service
+
+kill ID
+
+sleep 3 & "----into background"
+
+</pre>
+
+<h2> Users management </h2>
+<pre>
+useradd -m Name
+cat /etc/passwd
+usermod -s /bin/bash/ Name
+cat etc/shadow
+
+adduser Name
+</pre>
+
+<h2> Groups management </h2>
+<pre>
+groupadd Namegroup
+cat etc/group
+usermod -G NameGroup NameUser
+cat etc/passwd | grep NameUser
+groups NameUser
+</pre>
+
+<h2> File permissions </h2>
+<pre>
+chmod u+x NameFile
+chmod u-x NameFile
+chmod o+x NameFile
+
+og+x+w-r
+</pre>
+
+<h2> Scheduling </h2>
+<pre>
+crontab -l
+crontab -u Name -l
+
+ls -l /var/spool/cron/crontabs
+cat /etc/crontab/cond/*
+</pre>
+
+<h2> vi editor </h2>
+<pre>
+j -> down
+k -> up
+h -> left
+l -> right
+i -> insert
+ESC -> normal mode
+:wq -> exit
+</pre>
+
+
+</body>
+</html>

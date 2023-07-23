@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="CENTOS NETWORK">
+<meta name="keywords" content="CENTOS, NETWORK, linux">
+<title>CENTOS NETWORK</title>
+</head>
+<body>
+<nav> <a href = "index.html"> --- Up </a></nav>
+
+<h1>CENTOS NETWORK </h1>
+
+<h2>### --------------------------</h2>
+
+<h3>### Подключение к серверу БД  (tcp 22)</h3>
+<div># выполняем, например, через putty, указав ip-адрес сервера</div>
+<div># затем в диалоговом режиме вводим логин и пароль и попадаем в консоль</div>
+<div># правая клавиша мыши выполняет вставку содержимого буфера в окно с консолью</div>
+<div>&nbsp</div>
+<div># [ОПЦИОНАЛЬНО] Перезагрузка сервера:</div>
+<code>systemctl reboot</code>
+<div>&nbsp</div>
+<div># [ОПЦИОНАЛЬНО] Установка net-tools</div>
+<code>yum install net-tools</code>
+
+<h2>### --------------------------</h2>
+
+<div># Просмотр параметров настройки сети</div>
+<code>ifconfig</code>
+<div>&nbsp</div>
+<div># [ОПЦИОНАЛЬНО] Альтернативный просмотр параметров настройки сети</div>
+<code>ip addr</code>
+<div>&nbsp</div>
+<div># Просмотр сетевых устройств</div>
+<code>nmcli d</code>
+<div>&nbsp</div>
+<div># Просмотр параметров настройки сети для выбранного сетевого устройства</div>
+<code>ip a show [network_device_name]</code>
+<div>&nbsp</div>
+<div># [ОПЦИОНАЛЬНО]  Запуск утилиты для настройки параметров сети</div>
+<code>nmtui</code>
+<div>&nbsp</div>
+<div># [ОПЦИОНАЛЬНО] Перезагрузка сетевого сервиса для применения изменений</div>
+<code>service network restart</code>
+
+<h2>### --------------------------</h2>
+
+<h3>## [ОПЦИОНАЛЬНО] Настройка firewall</h3>
+
+<div># [ОПЦИОНАЛЬНО] Проверка статуса firewall</div>
+<code>firewall-cmd --state</code>
+<div>&nbsp</div>
+<div># [ОПЦИОНАЛЬНО] Остановка firewall</div>
+<code>sudo systemctl stop firewalld</code>
+<div>&nbsp</div>
+<div># [ОПЦИОНАЛЬНО] Отключение firewall</div>
+<code>sudo systemctl disable firewalld</code>
+<div>&nbsp</div>
+<div># [ОПЦИОНАЛЬНО] Маскирование firewall чтобы его не могли вызвать сервисы</div>
+<code>sudo systemctl mask --now firewalld</code>
+
+
+
+</body>
+</html>

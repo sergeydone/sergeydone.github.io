@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Copy files between linux and windows servers">
+<meta name="keywords" content="Copy files, linux, windows">
+<title>Copy files between linux and windows servers</title>
+</head>
+<body>
+<nav> <a href = "index.html"> --- Up </a></nav>
+
+<h1>Copy files between linux and windows servers</h1>
+
+<h2>Copy files to (->) linux server:</h2>
+<pre> 
+cmd
+cd C:\Program Files\PuTTY
+pscp C:\Install\test.txt root@1.1.1.1:/home
+
+</pre>
+
+
+<h2>Copy files from (<-) linux server:</h2>
+<pre> 
+cmd
+cd C:\Program Files\PuTTY
+pscp root@1.1.1.1:/home/test.txt C:\Install
+
+</pre>
+
+</body>
+</html>
+

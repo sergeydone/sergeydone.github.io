@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Postgresql backuping">
+<meta name="keywords" content="Postgresql, backuping">
+<title>Postgresql backup without data</title>
+</head>
+<body>
+<nav> <a href = "index.html"> --- Up </a></nav>
+
+<h1>Postgresql backup without data</h1>
+
+<h2>
+
+ 
+</h2>
+
+<pre>
+cd C:\Program Files\PostgreSQL\12\bin
+
+pg_dump.exe -h 127.0.0.1 -p 5432 postgres -F c -b -v --exclude-table-data=TABLEPARTNAMAME1_* --exclude-table-data=TABLENAMAME2 -f "C:\Backup\BACKUDATABASENAME.backup" "DATABASENAME"
+
+</pre>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="openSUSE DOCKER">
+<meta name="keywords" content="openSUSE, POSTGRESQL, linux, DOCKER">
+<title>DOCKER</title>
+</head>
+<body>
+<nav> <a href = "index.html"> --- Up </a></nav>
+
+<h1>Использование "pgadmin 4" в докер-контейнере в openSUSE</h1>
+
+
+ 
+
+<div># Установка докер:</div>
+<code>sudo zypper install docker</code>
+<div>&nbsp</div>
+<div># [ОПЦИОНАЛЬНО] просмотр версии докер</div>
+<code>docker version</code>
+<div>&nbsp</div>
+<div># Включение докер в автозагрузку:</div>
+<code>sudo systemctl enable docker</code>
+<div>&nbsp</div>
+<div># Делегирование пользователю полномочий для работы с докер (где $USER - имя пользователя):</div>
+<code>sudo usermod -G docker -a $USER</code>
+<div>&nbsp</div>
+<div># Запуск докер:</div>
+<code>sudo systemctl start docker</code>
+<div>&nbsp</div>
+<div># [ОПЦИОНАЛЬНО] перезапуск сервера:</div>
+<code>sudo systemctl reboot</code>
+<div>&nbsp</div>
+<div># Загрузка образа pgadmin4 для докер:</div>
+<code>docker pull dpage/pgadmin4</code>
+<div>&nbsp</div>
+<div># [ОПЦИОНАЛЬНО] Создаем каталог для хранения бекапа БД (например, указываем путь: postgresbak )</div>
+<code>mkdir postgresbak</code>
+<div>&nbsp</div>
+<div># [ОПЦИОНАЛЬНО] Просмотр имеющихся разрешений для каталога</div>
+<code>ls ‑l </code>
+<div>&nbsp</div>
+<div># [ОПЦИОНАЛЬНО] Назначаем разрешения для каталога (например, указываем путь: postgresbak)</div>
+<code>chmod u=rwx,g=rwx,o=rwx postgresbak</code>
+<div>&nbsp</div>
+<div># Создание и запуск контейнера докер pgadmin4 с параметрами, в том числе:</div>
+<div># порт хоста : порт контейнера</div>
+<div># папка хоста : папка контейнера (мапинг для последующего сохранения бекапов на хосте)</div>
+<div># переменная окружения логин для входа в pgadmin </div>
+<div># переменная окружения пароль для входа в pgadmin</div>
+<div># образ докера </div>
+<code>docker run -p 80:80 \</code><br/> 
+<code>-v ~/postgresbak:/var/lib/pgadmin/storage \</code> <br/>   
+<code>-e 'PGADMIN_DEFAULT_EMAIL=user@domain.com' \</code> <br/>    
+<code>-e 'PGADMIN_DEFAULT_PASSWORD=SuperSecret' \</code>  <br/>   
+<code>-d dpage/pgadmin4</code>    <br/> 
+<div>&nbsp</div>
+
+<div># [ОПЦИОНАЛЬНО] Просмотр запущенных процессов докер</div>
+<code>docker ps</code>
+<div>&nbsp</div>
+<div># [ОПЦИОНАЛЬНО] Редактируем pg_hba.conf -> host all all 0.0.0.0/0 md5 (или добавляем IP-адрес контейнера докер):</div>
+<code>sudo nano /var/lib/pgsql/data/pg_hba.conf</code>
+<div>&nbsp</div>
+<div># [ОПЦИОНАЛЬНО] Перезапускаем postgresql</div>
+<code>sudo systemctl restart postgresql</code>
+<div>&nbsp</div>
+<div># (где MyIPAddres - 127.0.0.1 если запускаем локально, или IP-адрес сервера БД, если запускаем удаленно)</div>
+<code>http://MyIPAddres:80</code>
+<div>&nbsp</div>
+
+<div># [ОПЦИОНАЛЬНО] просмотр имеющихся образов для докер:</div>
+<code>docker images</code>
+<div>&nbsp</div>
+<div># [ОПЦИОНАЛЬНО] удаление ненужного образа для докер:</div>
+<code>docker rmi -f IMAGE_ID</code>
+<div>&nbsp</div>
+<div># [ОПЦИОНАЛЬНО] Просмотр активных контейнеров докер:</div>
+<code>docker container ls</code>
+<div>&nbsp</div>
+<div># [ОПЦИОНАЛЬНО] Просмотр всех созданных контейнеров докер, в том числе и неактивных:</div>
+<code>docker container ls -a</code> 
+<div>&nbsp</div>
+<div># [ОПЦИОНАЛЬНО] Запуск контейнера докер:</div>
+<code>docker container start ИМЯ_ИЛИ_ID </code>
+<div>&nbsp</div>
+<div># [ОПЦИОНАЛЬНО] Остановка контейнера докер:</div>
+<code>docker container stop ИМЯ_ИЛИ_ID</code>
+<div>&nbsp</div>
+<div># [ОПЦИОНАЛЬНО] Очистка от всех неактивных контейнеров:</div>
+<code>docker container prune</code>
+
+
+</body>
+</html>

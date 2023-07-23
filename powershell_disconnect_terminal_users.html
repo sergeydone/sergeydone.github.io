@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Powershell">
+<meta name="keywords" content="Powershell">
+<title>Powershell</title>
+</head>
+<body>
+<nav> <a href = "index.html"> --- Up </a></nav>
+
+<h1>
+# Powershell script disconnect terminal users 
+</h1>
+
+<pre>
+# set email credential
+
+# $UserName = ""
+
+# $Pass = ConvertTo-SecureString "..." -AsPlainText -Force
+
+# $MyCred = New-Object -TypeName PSCredential -ArgumentList $UserName, $Pass
+
+ 
+
+# Set users white list
+
+$myWhiteList = @("USER1", "USER2", "USER3")
+
+ 
+
+# Set tic interval seconds
+
+$tic = 1800
+
+ 
+
+# Write-Host Start
+
+ 
+
+while($true)
+
+{
+
+# Init result
+
+$resultData = ""
+
+ # Init or clear arrays
+
+$users = @()
+
+$sessions = @()
+
+ # Get all sessions
+
+$output = (quser | select -Skip 1).substring(1)
+
+foreach ($line in $output)
+
+ {
+
+  # Filter disconnected sessions
+
+  if ($line -match 'disc')
+
+  {
+
+   # Get user names
+
+   $userName = ($line -split '\s+')[0]
+
+ 
+
+   # Flag of white list
+
+   $myFlag = 0
+
+ 
+
+   # Write-Host "myFlag"  $myFlag
+
+  
+
+   # Check white list
+
+   foreach ($element in $myWhiteList)
+
+   { 
+
+    # Write-Host $element " : " $userName
+
+    if($element -eq $userName) { $myFlag = 1 }
+
+   }
+
+ 
+
+   # Write-Host "myFlag"  $myFlag
+
+ 
+
+   # Flag of white list has not set
+
+   if($myFlag -eq 0)
+
+   {  
+
+    $users += $userName
+
+    $sessions += ($line -split '\s+')[1]
+
+    # Write-Host "with out flag: "  $userName
+
+   }
+
+   else
+
+   {
+
+    # Flag of white list has set
+
+    # Do nothing
+
+   }
+
+  }
+
+}
+
+ 
+
+# Show user names to disconnect
+
+foreach ($name in $users)
+
+ {
+
+  # Write-Host $name
+
+  $resultData += (", " + $name)
+
+}
+
+ # Check result
+
+if($resultData -ne "")
+
+ {
+
+  # Session id to disconnect
+
+  foreach ($ses in $sessions)
+
+  {
+
+   # Write-Host $ses
+
+   logoff $ses
+
+  }
+
+  # Show and send report
+
+  
+
+  if($MyCred)
+
+  {
+
+   Send-MailMessage -From EMAIL@DOMAIN -To EMAIL@DOMAIN -Subject "Information. Inactive terminal users have disconnected:" -SmtpServer 1.1.1.1 -Credential $MyCred -Body $resultData -Encoding UTF8
+
+  }
+
+  else
+
+  {
+
+   Write-Host "Sorry. Email credential not defined"
+
+  }
+
+ }
+
+ 
+
+Write-Host "One hour tic"
+
+sleep -seconds $tic
+
+}
+</pre>
+</body>
+</html>

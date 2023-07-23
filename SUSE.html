@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="openSUSE POSTGRESQL">
+<meta name="keywords" content="openSUSE, POSTGRESQL, linux, SUSE">
+<title>SUSE POSTGRESQL </title>
+</head>
+<body>
+<nav> <a href = "index.html"> --- Up </a></nav>
+
+<h1>openSUSE PostgreSQL first customization </h1>
+
+<h2>### --------------------------</h2>
+
+
+<h3>### Подключение к серверу БД  (tcp 22)</h3>
+<div># выполняем, например, через putty, указав ip-адрес сервера</div>
+<div># затем в диалоговом режиме вводим логин и пароль и попадаем в консоль</div>
+<div># правая клавиша мыши выполняет вставку содержимого буфера в окно с консолью</div>
+<div>&nbsp</div>
+
+<div># [ОПЦИОНАЛЬНО] Перезагрузка сервера:</div>
+<code>systemctl reboot</code>
+
+<h2>### --------------------------</h2>
+
+<h3>### Установка Postgresql на OPENSUSE</h3>
+
+<div># Обновление репозироториев</div>
+<code>zypper refresh</code>
+<div>&nbsp</div>
+<div># Установка пакетов postgresql</div>
+<code>sudo zypper in postgresql postgresql-server postgresql-contrib</code>
+<div>&nbsp</div>
+<div># Включение postgresql в автозапуск</div>
+<code>systemctl enable postgresql</code>
+<div>&nbsp</div>
+<div># Запуск postgresql</div>
+<code>systemctl start postgresql</code>
+<div>&nbsp</div>
+<div># [ОПЦИОНАЛЬНО] Проверяем состояние postgresql</div> 
+<code>systemctl status postgresql</code>
+<div>&nbsp</div>
+<div># [ОПЦИОНАЛЬНО] Проверяем версию postgresql</div>
+<code>postgres --version</code>
+<div>&nbsp</div>
+<div># [ОПЦИОНАЛЬНО] Остановка postgresql</div>
+<code>systemctl stop postgresql</code>
+
+
+<h2>### --------------------------</h2>
+
+<h3>###  [ОПЦИОНАЛЬНО] Установка дополнительных приложений на OPENSUSE</h3>
+
+<div>#  [ОПЦИОНАЛЬНО] Установка диспетчера задач HTOP</div>
+<code>sudo zypper in htop</code>
+<div>&nbsp</div>
+<div>#  [ОПЦИОНАЛЬНО] Установка файлового менеджера MC </div>
+<code>sudo zypper in mc</code>
+
+<h2>### --------------------------</h2>
+
+<h3>## Настройка postgresql </h3>
+
+<div># Редактируем postgresql.conf -> CONNECTIONS AND AUTHENTICATION -> list_address = '*'</div> 
+<code>sudo nano /var/lib/pgsql/data/postgresql.conf</code>
+<div>&nbsp</div>
+<div># Редактируем pg_hba.conf -> host all all 0.0.0.0/0 md5 :</div>
+<code>sudo nano /var/lib/pgsql/data/pg_hba.conf </code>  
+<div>&nbsp</div>
+<div># [ОПЦИОНАЛЬНО] если не можем найти вручную, ищем файлы конфигурации:</div>
+<code>find / -name postgresql.conf</code>
+<div>&nbsp</div>
+<div># [ОПЦИОНАЛЬНО] Просмотр портов которые слушает postgresql </div>
+<code>ss -nlt | grep 5432</code>
+<div>&nbsp</div>
+<div># Переключение на автоматически созданного суперпользователя postgres</div>
+<code>sudo su postgres</code>
+<div>&nbsp</div>
+<div># Вход в терминал postgres</div>
+<code>psql</code>
+<div>&nbsp</div>
+<div># Создание нового суперпользователя postgresql для собственных админ.задач</div> 
+<code>CREATE ROLE &ltusername&gt WITH PASSWORD '&ltpassword&gt';</code>
+<div>&nbsp</div>
+<div># Предоставление новому суперпользователю postgresql админ.права</div>
+<code>ALTER ROLE &ltusername&gt WITH SUPERUSER;</code>
+<div>&nbsp</div>
+<div># Предоставление новому суперпользователю postgresql права на вход</div>
+<code>ALTER ROLE &ltusername&gt WITH LOGIN;</code>
+<div>&nbsp</div>
+<div># Выход из терминала</div>
+<code>CTRL+d</code>
+<div>&nbsp</div>
+<div># выход из сеанса суперпользователя postgres</div>
+<code>CTRL+d</code>
+
+<h2>### --------------------------</h2>
+
+<h3>## [ОПЦИОНАЛЬНО] Настройка firewall</h3>
+
+<div># [ОПЦИОНАЛЬНО] Проверка статуса firewall</div>
+<code>firewall-cmd --stat</code>
+<div>&nbsp</div>
+<div># [ОПЦИОНАЛЬНО] Просмотр списка сервисов обслуживаемых firewall</div>
+<code>firewall-cmd --list-services</code>
+<div>&nbsp</div>
+<div># [ОПЦИОНАЛЬНО] Открытие порта в firewall</div>
+<code>sudo firewall-cmd --permanent --zone=public --add-port=22</code>
+<div>&nbsp</div>
+<code>sudo firewall-cmd --reload</code>
+<div>&nbsp</div>
+<div># [ОПЦИОНАЛЬНО] Остановка firewall</div>
+<code>sudo systemctl stop firewalld</code>
+<div>&nbsp</div>
+<div># [ОПЦИОНАЛЬНО] Отключение firewall</div>
+<code>sudo systemctl disable firewalld</code>
+<div>&nbsp</div>
+<h2>### --------------------------</h2>
+
+<h3>## [ОПЦИОНАЛЬНО] Создание каталога для хранения бекапа БД</h3>
+
+<div># [ОПЦИОНАЛЬНО] Создаем каталог (вместо MYPATH , например, указываем путь: postgresbak)</div>
+<code>mkdir MYPATH </code>
+<div>&nbsp</div>
+<div># [ОПЦИОНАЛЬНО] Просмотр имеющихся разрешений для каталога</div>
+<code>ls ‑l</code> 
+<div>&nbsp</div>
+<div># [ОПЦИОНАЛЬНО] Назначаем разрешения для каталога (вместо MYPATH , например, указываем путь: postgresbak)</div>
+<code>chmod u=rwx,g=rwx,o=rwx MYPATH </code>
+
+
+<h2>### --------------------------</h2>
+
+<h3>## Создание бекапа </h3>
+
+<div># авторизуемся как суперпользователь postgres:</div>
+<code>sudo su postgres</code>
+<div>&nbsp</div>
+<div># Создаем backup (вместо MYPATH.backup , например, указываем путь: /home/ser/postgresbak/2021_05_19_3.backup ), (иместо MYOLDNAME указываем имя БД которую бекапим):</div>
+<code>pg_dump -Fc --verbose > MYPATH.backup MYOLDNAME </code>
+
+
+<h2>### --------------------------</h2>
+
+<h3>## Восстановление из Бекапа:</h3>
+
+<div># авторизуемся как суперпользователь postgres:</div>
+<code>sudo su postgres</code>
+<div>&nbsp</div>
+<div># создаем новую пустую БД (вместо MYNAME указываем имя новой БД):</div>
+<code>createdb -T template0 MYNAME</code>
+<div>&nbsp</div>
+<div># выполняем восстановление из бекапа (вместо MYPATH.backup , например, указываем путь: /home/ser/postgresbak/2021_05_19_3.backup ):</div>
+<code>pg_restore -d MYNAME MYPATH.backup</code>
+
+<h2>### --------------------------</h2>
+
+<h3>## [ОПЦИОНАЛЬНО] Просмотр БД с помощью psql</h3>
+
+<div># [ОПЦИОНАЛЬНО] авторизуемся как суперпользователь postgres:</div>
+<code>sudo su postgres</code>
+<div>&nbsp</div>
+<div># [ОПЦИОНАЛЬНО] заходим в терминал psql:</div>
+<code>psql</code>
+<div>&nbsp</div>
+<div># [ОПЦИОНАЛЬНО] просмотр имеющихся БД:</div>
+<code>\l</code>
+<div>&nbsp</div>
+<div># [ОПЦИОНАЛЬНО] просмотр имеющихся пользователей:</div>
+<code>\du</code>
+<div>&nbsp</div>
+<div># [ОПЦИОНАЛЬНО] подключение к БД (вместо MYNAME указываем имя БД):</div>
+<code>\с MYNAME</code>
+<div>&nbsp</div>
+<div># [ОПЦИОНАЛЬНО] просмотр сущностей БД</div>
+<code>\d</code>
+<div>&nbsp</div>
+<div># [ОПЦИОНАЛЬНО] просмотр только таблиц БД</div>
+<code>\dt</code>
+<div>&nbsp</div>
+<div># [ОПЦИОНАЛЬНО] выход из терминала psql</div>
+<code>CTRL+d</code>
+<div>&nbsp</div>
+<div># [ОПЦИОНАЛЬНО] выход из сеанса суперпользователя postgres</div>
+<code>CTRL+d</code>
+
+
+</body>
+</html>

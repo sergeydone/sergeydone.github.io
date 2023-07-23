@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="powershell get systems CPU and RAM">
+<meta name="keywords" content="powershell, CPU, RAM">
+<title>Powershell get systems CPU and RAM properties</title>
+</head>
+<body>
+<nav> <a href = "index.html"> --- Up </a></nav>
+
+<h1>Powershell get systems CPU and RAM properties</h1>
+
+<h2>Powershell manual script</h2>
+
+<pre>
+# Set systems ip-addresses
+$myPCA = @("127.0.0.1", "127.0.0.1", "127.0.0.1")
+
+# Start workflow
+$myRez = ""
+foreach($myPC in $myPCA)
+{
+   $myName = (Get-WmiObject -Class Win32_ComputerSystem -ComputerName 127.0.0.1 ).Name.ToString()
+   
+   $myRam = [math]::Round((Get-WMIObject -Computername $myPC -class win32_ComputerSystem | Select-Object -Expand TotalPhysicalMemory)/1024/1024/1000).ToString()
+   
+   $myCPU = [math]::Round((Get-WmiObject -Class Win32_Processor -ComputerName 127.0.0.1 ).NumberOfCores).ToString()
+   
+   $myLCPU = [math]::Round((Get-WmiObject -Class Win32_Processor -ComputerName 127.0.0.1 ).NumberOfLogicalProcessors).ToString()
+
+   $myRez = $myRez + $myName + " : CPU " + $myCPU + " : LCPU " + $myLCPU+ " : RAM " + $myRam + " `r`n " 
+}
+Write-Host  $myRez
+</pre>
+
+ 
+
+
+
+
+</body>
+</html>

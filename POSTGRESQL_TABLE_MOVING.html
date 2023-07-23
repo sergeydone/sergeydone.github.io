@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Postgresql moving table">
+<meta name="keywords" content="Postgresql, table, tablespace">
+<title>Postgresql moving table</title>
+</head>
+<body>
+<nav> <a href = "index.html"> --- Up </a></nav>
+
+<h1>Postgresql moving table to another tablespace </h1>
+
+<h2> ### Протестировано перемещение отдельной таблицы БД Postgresql на другой диск в новое табличное пространство на Windows </h2>
+
+
+
+<code>  </code>
+<div>   </div>
+<div>&nbsp</div>
+
+<div>
+# 1. Создание новой папки:
+</div>
+
+<pre>
+	C:\DataBase_new_tablespace
+</pre>
+<div>&nbsp</div>
+ 
+<div>
+# 2. Назначение полного доступа для пользователя «NETWORK SERVICE» к новой папке
+</div>
+ <div>&nbsp</div>
+
+<div>
+# 3. Просмотр существующих табличных пространств:
+</div>
+
+<pre>
+	SELECT spcname FROM pg_tablespace
+</pre>
+ <div>&nbsp</div>
+
+<div>
+# 4. Создание нового табличного просранства:
+</div>
+
+<pre>
+	CREATE TABLESPACE DataBase_new_tablespace LOCATION 'C:\DataBase_new_tablespace';
+</pre>
+ <div>&nbsp</div>
+
+<div>
+# 5. Проверка доступности нового табличного пространства:
+</div>
+
+<pre>
+	SELECT spcname FROM pg_tablespace
+</pre>
+ <div>&nbsp</div>
+
+<div>
+# 6. Перенос таблицы (например, YOURTABLE1) в новое табличное пространство:
+</div>
+
+<pre>
+	ALTER TABLE YOURTABLE1 SET tablespace pg_default
+</pre>
+ <div>&nbsp</div>
+
+<div>
+# 7. Ожидание результата копирования для таблицы размером 200 MB составило 20 сек. (10 Мб / с)
+</div>
+<div>&nbsp</div>
+<div>&nbsp</div>
+
+
+
+</body>

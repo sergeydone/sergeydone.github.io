@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Postgresql backuping">
+<meta name="keywords" content="Postgresql, backuping">
+<title>Postgresql backuping</title>
+</head>
+<body>
+<nav> <a href = "index.html"> --- Up </a></nav>
+
+<h1>Postgresql backuping </h1>
+
+<h2>
+
+REM СОЗДАНИЕ РЕЗЕРВНОЙ КОПИИ БАЗЫ ДАННЫХ POSTGRESQL
+</h2>
+
+<pre>
+CLS
+
+ECHO OFF
+
+REM CHCP Windows-1251
+
+ 
+
+REM Установка переменных окружения
+
+SET PGBIN=C:\Program Files\PostgreSQL\9.5\bin
+
+SET PGDATABASE=...
+
+SET PGHOST=1.1.1.1
+
+SET PGPORT=5432
+
+SET PGUSER=...
+
+SET PGPASSWORD=...
+
+ 
+
+REM Смена диска и переход в папку из которой запущен bat-файл
+
+%~d0
+
+CD %~dp0
+
+ 
+
+REM Формирование имени файла резервной копии и файла-отчета
+
+SET DATETIME=%DATE:~6,4%-%DATE:~3,2%-%DATE:~0,2% %TIME:~0,2%-%TIME:~3,2%-%TIME:~6,2%
+
+SET DUMPFILE=%PGDATABASE% %DATETIME%.backup
+
+SET LOGFILE=%PGDATABASE% %DATETIME%.log
+
+SET DUMPPATH="Backup\%DUMPFILE%"
+
+SET LOGPATH="Backup\%LOGFILE%"
+
+ 
+
+ 
+
+REM Создание резервной копии
+
+IF NOT EXIST Backup MD Backup
+
+CALL "%PGBIN%\pg_dump.exe" --format=custom --verbose --file=%DUMPPATH% 2>%LOGPATH%
+
+ 
+
+REM Анализ кода завершения
+
+IF NOT %ERRORLEVEL%==0 GOTO Error
+
+GOTO Successfull
+
+ 
+
+REM В случае ошибки удаляется поврежденная резервная копия и делается соответствующая запись в журнале
+
+:Error
+
+DEL %DUMPPATH%
+
+MSG * "Errors while backing up the database. See backup.log."
+
+ECHO %DATETIME% Errors while backing up the database %DUMPFILE%. See report %LOGFILE%. >> backup.log
+
+GOTO End
+
+ 
+
+REM В случае удачного резервного копирования просто делается запись в журнал
+
+:Successfull
+
+ECHO %DATETIME% Successful backup %DUMPFILE% >> backup.log
+
+GOTO End
+
+ 
+
+:End
+</pre>
+</body>
+</html>

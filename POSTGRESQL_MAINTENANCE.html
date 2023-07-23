@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Postgresql DB vacuum">
+<meta name="keywords" content="Postgresql, maintenance, vacuum">
+<title>Postgresql DB vacuum</title>
+</head>
+<body>
+<nav> <a href = "index.html"> --- Up </a></nav>
+
+<h1>Postgresql DB vacuum  </h1>
+
+<h2> ### Postgresql очистка от мусора (удаленных записей) </h2>
+
+
+
+<code>  </code>
+<div>   </div>
+<div>&nbsp</div>
+
+<h3>## Выполнение полного вакуума (очистки от удаленных записей с высвобождением дискового пространства)  для заданной таблиы:</h3>
+
+
+<pre>
+	vacuum (full, verbose, analyze) TABLE_NAME;
+</pre>
+<div>&nbsp</div>
+
+<div> # Перед выполнением процедуры следует убедиться в достаточном объеме свободного места на диске, сооответствующего размеру таблицы. Поскольку очищенная от мусора таблица будет записана на диск, и только потом будет удален ее старый вариант, с высвобождением дискового пространства.
+Процедура выполняет блокировку таблицы на запись и чтение на время выполнения. </div>
+
+	
+	<h3>## Выполнение полного вакуума (очистки от удаленных записей с высвобождением дискового пространства)  для заданной базы данных:</h3>
+
+
+<pre>
+	vacuum (full, verbose, analyze);
+</pre>
+<div>&nbsp</div>
+</body>

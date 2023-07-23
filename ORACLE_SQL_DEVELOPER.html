@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="ORACLE SQL DEVELOPER">
+<meta name="keywords" content="ORACLE, SQL, DEVELOPER">
+<title>ORACLE SQL DEVELOPER</title>
+</head>
+<body>
+<nav> <a href = "index.html"> --- Up </a></nav>
+
+<h1>ORACLE SQL DEVELOPER </h1>
+
+<h2>## Oracle SQL Developer tricks </h2>
+
+
+</div>
+<code>  </code>
+<div>   </div>
+<div>&nbsp</div>
+
+<h3>
+# Для редактирования больших представлений (View) можно воспользоваться следующим методом:
+</h3>
+
+
+<div>
+# 1 – Выбрать нужное представление (View)
+</div>
+<div>&nbsp</div>
+
+<div>
+# 2 – Перейти во вкладку «SQL» свойств представления (View)
+</div>
+<div>&nbsp</div>
+
+<div>
+# 3 – Выделить и скопировать ВСЕ содержимое редактируемого представлния (View)
+</div>
+<div>&nbsp</div>
+
+<div>
+# 4 – Перейти во вкладку PL SQL запроса в ПО «Oracle SQL Developer»
+</div>
+<div>&nbsp</div>
+
+<div>
+# 5 – Вставить скопированное содержимое ВСЕГО текста представления (View)
+</div>
+<div>&nbsp</div>
+
+<div>
+# 6 – Добавить/изменить запросы в составе представления (View)
+</div>
+<div>&nbsp</div>
+
+<div>
+# 7 – Выполнить PL SQL - код
+</div>
+<div>&nbsp</div>
+
+<div>
+# Представление (View) изменено.
+</div>
+<div>&nbsp</div>
+
+	
+
+
+<h3>
+# Из-за особенностей устаревшей версии Oracle 9i  выполнение операции с JOB через актуальное ПО Oracle SQL Developer невозможно. Для операций с JOB Oracle 9i применимы PL SQL процедуры. Примеры использования:
+</h3>
+
+
+<div>
+# Просмотр имеющихся JOB Oracle 9i
+</div>
+
+<pre>
+select * from user_jobs where what like ('%MAIL%') 
+</pre>
+<div>&nbsp</div>
+<div>&nbsp</div> 
+
+<div>
+# Создание нового JOB Oracle 9i
+</div>
+
+<pre>
+declare
+
+x integer;
+
+begin
+
+  sys.dbms_job.submit(job => x,
+
+                      what => 'CHEME_NAME.PKG_NAME.PROCEDURE_NAME;',
+
+                      next_date => to_date('02-02-2000 00:52:47', 'dd-mm-yyyy hh24:mi:ss'),
+
+                      interval => 'SYSDATE + 1/(24*60)');
+
+  commit;
+
+end;
+</pre>
+<div>&nbsp</div>
+<div>&nbsp</div> 
+
+<div>
+# Починка сломанного JOB Oracle 9i
+</div>
+
+<pre>
+begin
+
+  dbms_job.broken(job => 111, broken => FALSE, next_date => to_date('02-02-2000 00:10:15', 'dd-mm-yyyy hh24:mi:ss'));
+
+end;
+</pre>
+<div>&nbsp</div>
+<div>&nbsp</div> 
+
+<div>
+# Запуск JOB Oracle 9i
+</div>
+
+<pre>
+begin
+
+  dbms_job.run(job => 111);
+
+end;
+</pre>
+<div>&nbsp</div>
+<div>&nbsp</div> 
+
+<div>
+# Остановка JOB Oracle 9i
+</div>
+
+<pre>
+begin
+
+  dbms_job.broken(job =>111, broken => TRUE);
+
+end;
+</pre>
+<div>&nbsp</div>
+<div>&nbsp</div> 
+
+<div>
+# Удаление остановленного JOB Oracle 9i
+</div>
+
+<pre>
+begin
+
+  dbms_job.remove(job => 111);
+
+end;
+</pre>
+<div>&nbsp</div> 
+
+
+
+</body>

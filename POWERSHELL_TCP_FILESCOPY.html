@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Powershell script to copy file via tcp-connection">
+<meta name="keywords" content="Powershell, script, copy, file, tcp-connection">
+<title>Powershell script to copy file via tcp-connection </title>
+</head>
+<body>
+<nav> <a href = "index.html"> --- Up </a></nav>
+
+<h1>Powershell script to copy file via tcp-connection </h1>
+
+<h2>## Powershell script to copy file via tcp-connection Client: </h2>
+
+<pre> 
+# (client)
+# Powershell script to copy file via tcp-connection (client)
+
+$serverIP = "127.0.0.1"
+$serverPort = 80
+$filePath = "C:\Users\Jo\Desktop\client\test.txt"
+$username = "test"
+$password = "test"
+
+# Read the file into a byte array
+$fileBytes = [System.IO.File]::ReadAllBytes($filePath)
+
+# Get the file name
+$fileName = [System.IO.Path]::GetFileName($filePath)
+
+# Connect to the server
+$client = [System.Net.Sockets.TcpClient]::new()
+$client.Connect($serverIP, $serverPort)
+
+Write-Host "Connected to server"
+
+# Get the network stream for sending data
+$stream = $client.GetStream()
+
+###
+
+# Send the authentication credentials to the server
+$credentials = "${username}:${password}"
+$credentialsBytes = [System.Text.Encoding]::UTF8.GetBytes($credentials)
+$stream.Write([BitConverter]::GetBytes($credentialsBytes.Length), 0, 4)
+$stream.Write($credentialsBytes, 0, $credentialsBytes.Length)
+
+###
+
+# Send the file name length and file name to the server
+$fileNameBytes = [System.Text.Encoding]::UTF8.GetBytes($fileName)
+$stream.Write([BitConverter]::GetBytes($fileNameBytes.Length), 0, 4)
+$stream.Write($fileNameBytes, 0, $fileNameBytes.Length)
+
+Write-Host "Sent file name: $fileName"
+
+# Send the file size to the server
+$fileSize = $fileBytes.Length
+$sizeBytes = [BitConverter]::GetBytes($fileSize)
+$stream.Write($sizeBytes, 0, $sizeBytes.Length)
+
+# Send the file data to the server
+$stream.Write($fileBytes, 0, $fileBytes.Length)
+
+
+Write-Host "Sent file data"
+
+# Close the client connection
+$client.Close()</pre>
+<div>&nbsp</div>
+
+
+
+
+
+
+
+
+<h2>## Powershell script to copy file via tcp-connection Server</h2>
+<pre> 
+# (server)
+# Powershell script to copy file via tcp-connection (server)
+
+$serverPort = 80
+$saveDirectory= "C:\Users\Jo\Desktop\server\"
+$expectedUsername = "test"
+$expectedPassword = "test"
+
+# Create a TCP listener on the specified port
+$listener = [System.Net.Sockets.TcpListener]::new([System.Net.IPAddress]::Any, $serverPort)
+$listener.Start()
+
+Write-Host "Server started and listening on port $serverPort"
+
+# Accept an incoming client connection
+$client = $listener.AcceptTcpClient()
+
+Write-Host "Client connected"
+
+# Get the network stream for receiving data
+$stream = $client.GetStream()
+
+##
+# Receive the authentication credentials from the client
+$credentialsLengthBytes = New-Object byte[](4)
+$stream.Read($credentialsLengthBytes, 0, 4)
+
+$credentialsLength = [BitConverter]::ToInt32($credentialsLengthBytes, 0)
+$credentialsBytes = New-Object byte[]($credentialsLength)
+$stream.Read($credentialsBytes, 0, $credentialsLength)
+$credentials = [System.Text.Encoding]::UTF8.GetString($credentialsBytes)
+
+$authenticated = ($credentials -eq "${expectedUsername}:${expectedPassword}")
+
+if($authenticated) {
+
+Write-Host authenticated 
+##
+
+# Receive the file name from the client
+$fileNameBytes = New-Object byte[](4)
+$stream.Read($fileNameBytes, 0, 4)
+
+
+$fileNameLength = [BitConverter]::ToInt32($fileNameBytes, 0)
+$fileNameBytes = New-Object byte[]($fileNameLength)
+$stream.Read($fileNameBytes, 0, $fileNameLength)
+$fileName = [System.Text.Encoding]::UTF8.GetString($fileNameBytes)
+
+Write-Host "Received file name: $fileName"
+
+# Receive the file data from the client
+
+
+$fileBytes = New-Object byte[]($stream.Length - $stream.Position)
+$stream.Read($fileBytes, 0, $fileBytes.Length)
+
+Write-Host "Received file data"
+
+# Read the file size from the client
+$sizeBytes = New-Object byte[](4)
+$stream.Read($sizeBytes, 0, 4)
+$fileSize = [BitConverter]::ToInt32($sizeBytes, 0)
+
+# Read the file data from the client
+$fileBytes = New-Object byte[]($fileSize)
+$stream.Read($fileBytes, 0, $fileSize)
+
+
+# Save the received file to the specified directory with the received file name
+$savePath = $saveDirectory + $fileName
+[System.IO.File]::WriteAllBytes($savePath, $fileBytes)
+
+Write-Host "File saved to $savePath"
+
+# Close the listener and client connection
+$listener.Stop()
+$client.Close()
+
+} else {
+Write-Host Do nothing
+}
+</pre>
+<div>&nbsp</div>
+
+<div>&nbsp</div>
+</body>
+</html>

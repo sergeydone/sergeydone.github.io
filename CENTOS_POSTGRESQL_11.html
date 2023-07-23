@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="CENTOS POSTGRESQL12">
+<meta name="keywords" content="CENTOS, POSTGRESQL12, POSTGRESQL, linux">
+<title>CENTOS POSTGRESQL12</title>
+</head>
+<body>
+<nav> <a href = "index.html"> --- Up </a></nav>
+
+<h1>CENTOS PostgreSQL12 customization </h1>
+<h2>### --------------------------</h2>
+<h3>### Подключение к серверу БД  (tcp 22)</h3>
+<div># выполняем, например, через putty, указав ip-адрес сервера</div>
+<div># затем в диалоговом режиме вводим логин и пароль и попадаем в консоль</div>
+<div># правая клавиша мыши выполняет вставку содержимого буфера в окно с консолью</div>
+
+<div># [ОПЦИОНАЛЬНО] Перезагрузка сервера:</div>
+<code>reboot</code>
+
+
+<h2>### --------------------------</h2>
+
+<h3>## [ОПЦИОНАЛЬНО] Установка заданной версии Postgresql на CentOS </h3>
+
+<div># Редактирование локальных праметров репозиториев для postgresql</div>
+<div># в секциях [base] и [updates] нужно добавить строку:              exclude=postgresql*</div>
+<code> sudo vi /etc/yum.repos.d/CentOS-Base.repo</code>
+<div>&nbsp</div>
+<div> # Получение информации из репозитория postgresql</div>
+<code>  sudo yum install https://download.postgresql.org/pub/repos/yum/reporpms/EL-7-x86_64/pgdg-redhat-repo-latest.noarch.rpm</code>
+<div>&nbsp</div>
+<div> # Просмотр списка доступных версий postgresql</div>
+<code>  yum list postgresql*</code>
+<div>&nbsp</div>
+<div> # Установка пакетов postgresql</div>
+<code>  yum install postgresql12-server</code>
+<div>&nbsp</div>
+<div> # Инициализация БД</div>
+<code>  /usr/pgsql-12/bin/postgresql-12-setup initdb</code>
+<div>&nbsp</div>
+<div> # Включение postgresql в автозапуск</div>
+<code> systemctl enable postgresql-12</code>
+<div>&nbsp</div>
+<div> # Запуск postgresql</div>
+<code> systemctl start postgresql-12</code>
+<div>&nbsp</div>
+<div> # [ОПЦИОНАЛЬНО] Проверяем состояние postgresql </div>
+<code> systemctl status postgresql-12</code>
+<div>&nbsp</div>
+<div> # [ОПЦИОНАЛЬНО] Остановка postgresql</div>
+<code> systemctl stop postgresql-12</code>
+<div>&nbsp</div>
+<div> # [ОПЦИОНАЛЬНО] Перезапуск postgresql</div>
+<code> systemctl restart postgresql-12</code>
+<div>&nbsp</div>
+
+<h2>### --------------------------</h2>
+
+<h3>## [ОПЦИОНАЛЬНО] Настройка postgresql </h3>
+
+<div> # Редактируем "postgresql.conf" в разделе "CONNECTIONS AND AUTHENTICATION" изменяем строку: list_address = '*' </div>
+<code> sudo vi /var/lib/pgsql/12/data/postgresql.conf</code>
+<div>&nbsp</div>
+<div> # Редактируем "pg_hba.conf" добавляем в конце строку:    host all all 0.0.0.0/0 md5 </div>
+<code> sudo vi /var/lib/pgsql/12/data/pg_hba.conf </code>
+<div>&nbsp</div>
+<div> # [ОПЦИОНАЛЬНО] если не можем найти вручную, ищем файлы конфигурации:</div>
+<code> find / -name postgresql.conf</code>
+<div>&nbsp</div>
+<div> # [ОПЦИОНАЛЬНО] Просмотр портов которые слушает postgresql </div>
+<code> ss -nlt | grep 5432</code>
+<div>&nbsp</div>
+<div> # Перезагрузка Postgres для применения параметров</div>
+<code> systemctl restart postgresql-11</code>
+<div>&nbsp</div>
+<div> # [ОПЦИОНАЛЬНО] Изменение пароля пользователя postgres</div>
+<code> passwd postgres</code>
+<div>&nbsp</div>
+<div> # Переключение на автоматически созданного суперпользователя postgres</div>
+<code> sudo su postgres</code>
+<div>&nbsp</div>
+<div> # Вход в терминал postgres</div>
+<code> psql</code>
+
+<div>&nbsp</div>
+<div> # [ОПЦИОНАЛЬНО] Альтернативный способ входа в терминал postgres</div>
+<code> # sudo -u postgres psql</code>
+<div>&nbsp</div>
+<div> # Создание нового суперпользователя БД postgresql для собственных админ.задач </div>
+<code> CREATE ROLE &ltusername&gt WITH PASSWORD '&ltpassword&gt';</code>
+    <div>&nbsp</div>
+<div> # Предоставление новому суперпользователю БД postgresql админ.права</div>
+<code> ALTER ROLE &ltusername&gt  WITH SUPERUSER;</code>
+    <div>&nbsp</div>
+<div> # Предоставление новому суперпользователю БД postgresql права на вход</div>
+<code> ALTER ROLE &ltusername&gt  WITH LOGIN;</code>
+    <div>&nbsp</div>
+<div> # Выход из терминала</div>
+<code> CTRL+d</code>
+<div>&nbsp</div>
+<div> # выход из сеанса суперпользователя postgres</div>
+<code> CTRL+d</code>
+<div>&nbsp</div>
+
+<h2>### --------------------------</h2>
+
+<h3>## [ОПЦИОНАЛЬНО] Создание каталога для хранения бекапа БД</h3>
+
+<div> # [ОПЦИОНАЛЬНО] Создаем каталог (вместо /home/postgresbak/ , например, указываем путь для сохранения бекапа)</div>
+<code> mkdir /home/postgresbak/</code>
+<div>&nbsp</div>
+<div> # [ОПЦИОНАЛЬНО] Просмотр имеющихся разрешений для каталога</div>
+<code> ls ‑l </code>
+<div>&nbsp</div>
+<div> # [ОПЦИОНАЛЬНО] Назначаем разрешения для каталога (вместо /home/postgresbak/ , например, указываем путь для сохранения бекапа)</div>
+<code>chmod u=rwx,g=rwx,o=rwx MYPATH </code>
+<div>&nbsp</div>
+<h2>### --------------------------</h2>
+
+<h3>## Создание бекапа </h3>
+
+<div> # авторизуемся как суперпользователь postgres:</div>
+<code> sudo su postgres</code>
+<div>&nbsp</div>
+<div> # Создаем backup (вместо /home/postgresbak/test20210909.backup , например, указываем путь для сохранения бекапа ), (вместо test_db указываем имя БД которую бекапим):</div>
+<code> pg_dump -Fc --verbose > /home/postgresbak/test20210909.backup test_db</code>
+<div>&nbsp</div>
+
+<h2>### --------------------------</h2>
+
+<h3>## [ОПЦИОНАЛЬНО] Восстановление из Бекапа:</h3>
+
+<div> # авторизуемся как суперпользователь postgres:</div>
+<code> sudo su postgres</code>
+<div>&nbsp</div>
+<div> # создаем новую пустую БД (вместо test_db_r указываем имя новой БД):</div>
+<code> createdb -T template0 test_db_r</code>
+<div>&nbsp</div>
+<div> # выполняем восстановление из бекапа (вместо /home/postgresbak/test20210909.backup , например, указываем путь для сохранения бекапа ):</div>
+<code> pg_restore -v -d test_db_r /home/postgresbak/test20210909.backup</code>
+<div>&nbsp</div>
+
+<h2>### --------------------------</h2>
+
+<h3>## [ОПЦИОНАЛЬНО] Восстановление Бекапа в другое табличное пространство:</h3>
+
+<div> # создание каталога для нового табличного пространства в выбранном разделе диска</div>
+<code> mkdir /backup/test_restore</code>
+<div>&nbsp</div>
+<div> # назначение суперпользователя postgres владельцем каталога</div>
+<code> sudo chown postgres: /backup/test_restore</code>
+<div>&nbsp</div>
+<div> # авторизуемся как суперпользователь postgres</div>
+<code> sudo su postgres</code>
+<div>&nbsp</div>
+<div> # Вход в терминал postgres</div>
+<code> psql</code>
+<div>&nbsp</div>
+<div> # Просмотр существующих табличных пространств</div>
+<code> select spcname from pg_tablespace;</code>
+<div>&nbsp</div>
+<div> # Создание нового табличного пространства с именем test_backup_tab (вместо  test_backup_tab , например, можем указать имя нового табличного пространства)</div>
+<code> CREATE TABLESPACE test_backup_tablespace LOCATION '/backup/test_restore';</code>
+<div>&nbsp</div>
+<div> # Выход из терминала postgres</div>
+<code> CTRL+d</code>
+<div>&nbsp</div>
+<div> # создаем новую пустую БД (вместо test_backup_tablespace , например, указываем имя нужного нам табличного пространства, а вместо test_db_rt , например, указываем имя созданной новой БД)</div>
+<code> createdb -D test_backup_tablespace -T template0 test_db_rt</code>
+<div>&nbsp</div>
+<div> # выполняем восстановление из бекапа (вместо test_db_rt , например, указываем имя новой созданной БД, а вместо /home/postgresbak/test20210909.backup , например, указываем путь к файлу бекапа ):</div>
+<code> pg_restore -v -d test_db_rt /home/postgresbak/test20210909.backup</code>
+<div>&nbsp</div>
+
+<h2>### --------------------------</h2>
+
+<h3>## [ОПЦИОНАЛЬНО] Просмотр БД с помощью psql</h3>
+
+<div> # [ОПЦИОНАЛЬНО] авторизуемся как суперпользователь postgres:</div>
+<code> sudo su postgres</code>
+<div>&nbsp</div>
+<div> # [ОПЦИОНАЛЬНО] заходим в терминал psql:</div>
+<code> psql</code>
+<div>&nbsp</div>
+<div> # [ОПЦИОНАЛЬНО] просмотр имеющихся БД:</div>
+<code> \l\</code>
+<div>&nbsp</div>
+<div> # [ОПЦИОНАЛЬНО] просмотр имеющихся пользователей:</div>
+<code> \du</code>
+<div>&nbsp</div>
+<div> # [ОПЦИОНАЛЬНО] подключение к БД (вместо MYNAME указываем имя БД):</div>
+<code> \с MYNAME</code>
+<div>&nbsp</div>
+<div> # [ОПЦИОНАЛЬНО] просмотр сущностей БД</div>
+<code> \d</code>
+<div>&nbsp</div>
+<div> # [ОПЦИОНАЛЬНО] просмотр только таблиц БД</div>
+<code> \dt</code>
+<div>&nbsp</div>
+<div> # [ОПЦИОНАЛЬНО] выход из терминала psql</div>
+<code> CTRL+d</code>
+<div>&nbsp</div>
+<div> # [ОПЦИОНАЛЬНО] выход из сеанса суперпользователя postgres</div>
+<code>CTRL+d</code>
+<div>&nbsp</div>
+</body>
+</html>

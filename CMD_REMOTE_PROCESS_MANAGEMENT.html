@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="CMD REMOTE PROCESS MANAGEMENT">
+<meta name="keywords" content="CMD, REMOTE, PROCESS, MANAGEMENT">
+<title>CMD REMOTE PROCESS MANAGEMENT </title>
+</head>
+<body>
+<nav> <a href = "index.html"> --- Up </a></nav>
+
+<h1>Windows CMD remote process management </h1>
+
+<h2>## Get remote server process: </h2>
+
+<code> 
+tasklist.exe /S IP_ADDRESS_SERVER /U USER_NAME_SERVER /P PASSWORD_SERVER
+</code>
+<div>&nbsp</div>
+
+<h2>## Kill remote server process: </h2>
+
+<code> 
+taskkill.exe /S IP_ADDRESS_SERVER /U USER_NAME_SERVER /P PASSWORD_SERVER /pid ....
+
+</code>
+<div>&nbsp</div>
+
+
+<h2>## Get remote server user sessions: </h2>
+
+<code> 
+quser /server:IP_ADDRESS_SERVER
+</code>
+
+<div>&nbsp</div>
+<p> or </p>
+
+<code>
+qwinsta /server:IP_ADDRESS_SERVER
+</code>
+
+<div>&nbsp</div>
+
+<h2>## Log Off remote server user by his session ID: </h2>
+
+<code> 
+logoff ... /server:IP_ADDRESS_SERVER
+
+</code>
+<div>&nbsp</div>
+
+<div>&nbsp</div>
+</body>
+</html>

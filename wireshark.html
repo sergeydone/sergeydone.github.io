@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="wireshark filters">
+<meta name="keywords" content="wireshark">
+<title>Wireshark filters</title>
+</head>
+<body>
+<nav> <a href = "index.html"> --- Up </a></nav>
+
+<h1>Wireshark filters  </h1>
+
+<h2>source address: </h2>
+<pre>
+ip.src = 127.0.0.1
+</pre>
+	
+<h2>destination address: </h2>
+<pre>
+ip.dst = 127.0.0.1
+</pre>
+	
+<h2>port: </h2>
+<pre>
+tcp.port == 443
+</pre>
+	
+<h2>two ports: </h2>
+<pre>
+(tcp.port == 443) and (tcp.port == 80)
+</pre>		
+	
+<h2>source address and port: </h2>
+<pre>
+(ip.src = 127.0.0.1) and (tcp.port == 80)
+</pre>
+	
+<h2>destination address and port: </h2>
+<pre>
+(ip.dst = 127.0.0.1) and (tcp.port == 80)
+</pre>	
+	
+<h2>protocol: </h2>
+<pre>
+http
+</pre>
+
+</body>
+</html>
+

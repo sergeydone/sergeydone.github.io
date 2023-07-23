@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="MYSQL database">
+<meta name="keywords" content="MYSQL, database ">
+<title>MYSQL database backup</title>
+</head>
+<body>
+<nav> <a href = "index.html"> --- Up </a></nav>
+
+<h1>MYSQL database </h1>
+
+<h2>Запуск mysql CLI:</h2>
+
+<div> Запустить CMD и перейти в каталог mysql:</div>
+<pre>
+   cd C:\Program Files (x86)\MySQL Server 5.5\bin
+</pre>
+
+<div> Запустить mysql CLI:</div>
+<pre>
+   mysql -u root -p
+   password
+</pre>
+
+
+<h2>Операции в mysql CLI:</h2>
+
+<div> Просмотр версии mysql:</div>
+<pre>
+   select version();
+</pre>
+
+<div> Просмотр справки mysql:</div>
+<pre>
+   help
+</pre>
+
+<div> Вывод списка баз данных mysql:</div>
+<pre>
+   show databases;
+</pre>
+
+<div> Подключение к базе данных mysql:</div>
+<pre>
+   use DATABASENAME;
+</pre>
+
+<div> Просмотр таблиц базы данных mysql:</div>
+<pre>
+   show tables;
+</pre>
+
+<div> Создание новой базы данных mysql:</div>
+<pre>
+   CREATE DATABASE MYNEWDATABASENAME;
+</pre>
+
+<div> Удаление базы данных mysql  </div>
+<pre>
+   DROP DATABASE MYNEWDATABASENAME;
+</pre>
+
+<div> Просмотр размеров баз данных mysql:</div> 
+<pre>
+   SELECT table_schema "DATABASENAME",
+           ROUND(SUM(data_length + index_length) / 1024 / 1024, 1) "DB Size in MB"
+   FROM information_schema.tables
+   GROUP BY table_schema;
+</pre>
+
+<div> Просмотр подключений к базе данных mysql:</div>
+<pre>
+   mysql> show status like 'Conn%';
+</pre>
+
+<div> Просмотр процессов в базе данных mysql:</div>
+<pre>
+   show processlist;
+</pre>
+
+<div> Просмотр таблиц в базе данных mysql:</div>
+<pre>
+   show table status from myDatabaseName;
+</pre>
+
+<div> Просмотр размера таблиц в базе данных mysql:</div>
+<pre>
+   SELECT
+       table_name AS `Table`,
+       round(((data_length + index_length) / 1024 / 1024), 2) `Size in MB`
+   FROM information_schema.TABLES
+   WHERE table_schema = "DATABASENAME"
+</pre>
+
+<div> Анализ таблицы базы данных mysql:</div>
+<pre>
+   ANALYZE TABLE tablename;
+</pre>
+
+<div> Оптимизация таблицы базы данных mysql:</div>
+<pre>
+   OPTIMIZE TABLE tablename
+</pre>
+
+
+
+<h2>Работа с бекапами базы данных mysql через CLI:</h2>
+
+<div> Запустить CMD с правами адинистратора и перейти в каталог mysql: </div>
+<pre>
+   cd C:\Program Files (x86)\MySQL Server 5.5\bin
+</pre>
+
+<div> Создание бекапа базы данных mysql:</div>
+<pre> 
+   mysqldump -uroot -p DATABASENAME &gt dump.sql
+</pre>
+
+<div> Восстановление из бекапа базы данных mysql:</div>
+<pre>
+   mysql -uroot -p DATABASENAME &lt dump.sql
+</pre>
+
+
+<h2>Работа с частичными бекапами базы данных mysql через CLI:</h2>
+
+<div> Запустить CMD с правами адинистратора и перейти в каталог mysql: </div>
+<pre>
+   cd C:\Program Files (x86)\MySQL Server 5.5\bin
+</pre>
+
+
+<div>Бекап схемы БД:</div>
+<pre>
+   mysqldump -h 127.0.0.1 -u root -p --no-data DATABASENAME > myschema.sql
+</pre>
+ 
+
+<div>Бекап БД без таблиц с большим объемом:</div>
+<pre>
+   mysqldump -uroot -p DATABASENAME 
+   --ignore-table=DATABASENAME.TABLENAME1 
+   --ignore-table=DATABASENAME.TABLENAME2 
+   --ignore-table=DATABASENAME.TABLENAME3 
+   --ignore-table=DATABASENAME.TABLENAME4 &gt myExportFile.sql
+</pre>
+ 
+
+
+</body>
+</html>

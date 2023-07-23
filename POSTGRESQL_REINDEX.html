@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Postgresql DB vacuum">
+<meta name="keywords" content="Postgresql, maintenance, vacuum">
+<title>Postgresql DB reindex</title>
+</head>
+<body>
+<nav> <a href = "index.html"> --- Up </a></nav>
+
+<h1>Postgresql DB reindex  </h1>
+
+<h2> ### Postgresql переиндексация </h2>
+
+
+
+<code>  </code>
+<div>   </div>
+<div>&nbsp</div>
+
+<h3>## Выполнение переиндексации (создание нового индекса, удаление старого индекса, освобождение дискового пространства)  для заданной таблиы, при этом таблица остается доступной только на чтение:</h3>
+
+<pre>
+	REINDEX TABLE TABLE_NAME;
+</pre>
+<div>&nbsp</div>
+
+	
+<h3>## Выполнение мягкой переиндексации (создание нового индекса, удаление старого индекса, освобождение дискового пространства)  для заданной таблиы, при этом таблица остается доступной, но операция выполняется медленно:</h3>
+
+<pre>
+	REINDEX TABLE CONCURRENTLY TABLE_NAME;
+</pre>
+<div>&nbsp</div>
+
+
+
+	
+<h3>## Мониторинг динамики  переиндексации :</h3>
+	
+<pre>
+	select blocks_done, blocks_total, 
+	Round(((blocks_done::real) / (blocks_total::real)) * 100 ) as DONE 
+	from pg_stat_progress_create_index;
+	
+	
+</pre>
+<div>&nbsp</div>
+<div> # Перед выполнением процедуры следует убедиться в достаточном объеме свободного места на диске, сооответствующего размеру индекса. Поскольку новый индекс будет записан на диск, и только потом будет удален его старый вариант, с высвобождением дискового пространства.
+</div>		
+	
+	
+<h3>## Выполнение переиндексации (создание нового индекса, удаление старого индекса, освобождение дискового пространства)  для всей БД:</h3>
+
+<pre>
+	REINDEX DATABASE "DATABASENAME";
+</pre>
+<div>&nbsp</div>	
+	
+</body>

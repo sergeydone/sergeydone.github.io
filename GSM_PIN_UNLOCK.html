@@ -1,0 +1,40 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="GSM MODEM PIN UNLOCK">
+<meta name="keywords" content="GSM, sim, modem, AT-commands, pin, unlock">
+<title>GSM modem pin unlock </title>
+</head>
+<body>
+<nav> <a href = "index.html"> --- Up </a></nav>
+
+<h1>GSM modem sim-card pin unlocking </h1>
+
+<h2>## After successful connection to a GSM-modem with a terminal, you should type a bunch of AT-commands: </h2>
+
+
+</div>
+
+<h3>Has sim-card blocked by the pin-code?</h3>
+<code> AT+CPIN?</code>
+<div>&nbsp</div>
+
+<h3>Input correct puk-code and new pin-code if pin is blocked</h3>
+<code> AT+CPIN=MYPUCKCODEHERE,MYNEWPINCODEHERE</code>
+<div>&nbsp</div>
+
+<h3>Check modem unlocking command</h3>
+<code> AT+CLCK=?</code>
+<div>&nbsp</div>
+
+<h3>Disable pin-code checking</h3>
+<code> AT+CLCK="SC",0,"MYNEWPINCODEHERE"</code>
+<div>&nbsp</div>
+
+<div># After all, you'll receive text messsage OK </div>
+<div>&nbsp</div>
+</body>
+</html>

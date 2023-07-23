@@ -1,0 +1,316 @@
+using System;
+using System.Collections.Generic;
+using System.Text;
+using System.IO;
+using System.Diagnostics;
+
+namespace Pop3
+{
+    public class MainPop3 : Pop3.IEmail
+    {
+        public MainPop3(IList<string> _lpe,                      //lpe это list_permitted_emails
+                        bool _del_email_after_receiving,
+                        string _email,
+                        string _pass,
+                        string _host,
+                        string _path_temp_dir,
+                        int _port,
+                        bool _use_ssl)
+        {
+            try
+            {
+                this.Lpe = _lpe;
+                this.Del_email_after_receiving = _del_email_after_receiving;
+                this.Email = _email;
+                this.Pass = _pass;
+                this.Host = _host;
+                this.Path_temp_dir = _path_temp_dir;
+                this.Port = _port;
+                this.Use_ssl = _use_ssl;
+            }
+
+            catch (Exception ex)
+            {
+                SaveLog_Library.SaveLog_Main.WriteToLog(ex.Message + ex.StackTrace, EventLogEntryType.Error, 1, 1, 0);
+            }
+        }
+
+ 
+        //----поля-----------------
+        private IList<string> lpe;
+        private bool del_email_after_receiving;
+        private string email;
+        private string pass;
+        private string host;
+        private string path_temp_dir;
+        private bool use_ssl;
+        private int port;
+        //-------------------------
+
+
+        //свой метод, для получения "ОТ КОГО" из шапки письма
+        private string Get_From(string s_text)
+        {
+            s_text = s_text.ToLower();
+            string s_zapas = s_text;
+            string tmp = "";
+
+            //добавка что бы для писем обладающих блоком return-path сразу получить адрес
+            string s_text2 = s_text.Replace("\r\n", "  ").Replace("\t", " ");
+            if (s_text2.Contains("return-path:"))
+            {
+                int i_start = s_text2.IndexOf("return-path:") + "return-path:".Length;
+                int i_stop = s_text2.IndexOf(" ", i_start + 1);
+                tmp = s_text2.Substring(i_start, i_stop - i_start).Trim();
+ 
+                /* ДОБАВЛЕНО 2017.07.20*/
+                char[] charsToTrim = { '<', '>' };
+                string result = tmp.Trim(charsToTrim).Trim();
+                tmp = result;
+                /*КОНЕЦ ДОБАВКИ*/
+ 
+                return tmp;
+            }
+
+            int i_from = 0, i_to = 0;
+            try
+            {
+                do
+                {
+                    i_from = s_text.IndexOf("from:");
+                    i_to = s_text.IndexOf("to:", i_from);
+                    if (i_to == -1)
+                    {
+                        i_to = s_text.IndexOf(">", i_from);
+                    }
+
+                    tmp = s_text.Substring(i_from, i_to - i_from + 1);
+                    s_text = s_text.Substring(i_from + 3);
+                    if (tmp.Contains("<") && tmp.Contains(">"))
+                    {
+                        tmp = tmp.Substring(tmp.IndexOf("<") + 1, tmp.IndexOf(">") - tmp.IndexOf("<") - 1);
+                        s_text = "";
+                    }
+                }
+                while (s_text.Length > 0);
+            }
+            catch
+            {
+                tmp = "";
+                SaveLog_Library.SaveLog_Main.WriteToLog("Ошибка определения FROM: в письме " + s_zapas, EventLogEntryType.Error, 1, 1, 0);
+            }
+            return tmp;
+        }
+
+         //----свойства-------------
+        public IList<string> Lpe
+        {
+            get
+            {
+                return lpe;
+            }
+            set
+            {
+                lpe = value;
+            }
+        }
+
+        public bool Del_email_after_receiving
+        {
+            get
+            {
+                return del_email_after_receiving;
+            }
+            set
+            {
+                del_email_after_receiving = value;
+            }
+        }
+
+        public string Email
+        {
+            get
+            {
+                return email;
+            }
+            set
+            {
+                email = value;
+            }
+        }
+
+        public string Pass
+        {
+            get
+            {
+                return pass;
+            }
+            set
+            {
+                pass = value;
+            }
+        }
+
+        public string Host
+        {
+            get
+            {
+                return host;
+            }
+            set
+            {
+                host = value;
+            }
+        }
+
+        public string Path_temp_dir
+        {
+            get
+            {
+                return path_temp_dir;
+            }
+            set
+            {
+                path_temp_dir = value;
+            }
+        }
+
+        public bool Use_ssl
+        {
+            get
+            {
+                return use_ssl;
+            }
+            set
+            {
+                use_ssl = value;
+            }
+        }
+
+        public int Port
+        {
+            get
+            {
+                return port;
+            }
+            set
+            {
+                port = value;
+            }
+        }
+        //-------------------------
+
+       //переменная которую будет проверять метод получения почты
+        private bool b_must_emergency_stop = false;
+
+        //задача метода изменить переменную которую будет проверять метод Get_Email()
+        public void ZZZ()
+        {
+            b_must_emergency_stop = true;
+        }
+
+        //----метод прописаный в интерфейсе----      
+        public string Get_Email()
+        {
+            string result = "";
+            try
+            {
+                Pop3.Pop3MailClient DemoClient = new Pop3.Pop3MailClient(host, port, use_ssl, email, pass);
+                DemoClient.IsAutoReconnect = true;
+                DemoClient.ReadTimeout = 60000; //give pop server 60 seconds to answer
+
+                //соединяемся
+                DemoClient.Connect();
+
+                //get a list of mails
+                List<int> EmailIds;
+                DemoClient.GetEmailIdList(out EmailIds);
+
+                //ping server
+                DemoClient.NOOP();
+
+                string s_header = "";
+                foreach (int i in EmailIds)
+                {
+                    //экстренный выход ----------------------------------------------------------------------------------------------
+                    if (b_must_emergency_stop)     
+                    {
+                        SaveLog_Library.SaveLog_Main.WriteToLog("Получение почты выполняет аварийное закрытие в связи с остановкой службы!", EventLogEntryType.Warning, 1, 1, 0);
+
+                        break;
+                    }
+                    //-------------------------------------------------------------------------------------------------------------------------------
+
+                    DemoClient.GetRawEmail_For_Top(i, out s_header);
+                    string s_from = Get_From(s_header);
+                    if (lpe.Contains(s_from))
+                    {
+                        //вычитал письмо   
+                        string s_email;
+                        DemoClient.GetRawEmail(i, out s_email);
+
+                        //string s_filename = @"C:\_projects\GET_MAIL2\" + i.ToString() + ".eml";
+                        string s_filename = path_temp_dir + i.ToString() + ".eml";
+
+                        FileStream file = new FileStream(s_filename, FileMode.Create);
+                        StreamWriter sw = new StreamWriter(file);
+                        try
+                        {
+                            sw.Write(s_email);
+                        }
+                        catch
+                        {
+                        }
+                        sw.Close();
+                        file.Close();
+
+                        CDO.Message msg = new CDO.Message();
+                        ADODB.Stream stream = new ADODB.Stream();
+                        stream.Open(Type.Missing, ADODB.ConnectModeEnum.adModeUnknown, ADODB.StreamOpenOptionsEnum.adOpenStreamUnspecified, String.Empty, String.Empty);
+ 
+                        bool b_exist_err = false;//мониторинга ошибки в случае сбоя  (что бы не потерять письмо)
+
+                        //string testE1 = msg.HTMLBodyPart.ToString();
+                        //string testE2 = msg.TextBodyPart.ToString();
+                        //string testE3 = msg.BodyPart.ToString();
+                        //SaveLog_Library.SaveLog_Main.WriteToLog("testE1 " + testE1, EventLogEntryType.Information, 1, 1, 0);
+                        //SaveLog_Library.SaveLog_Main.WriteToLog("testE2 " + testE2, EventLogEntryType.Information, 1, 1, 0);
+                        //SaveLog_Library.SaveLog_Main.WriteToLog("testE3 " + testE3, EventLogEntryType.Information, 1, 1, 0);
+
+                        if (File.Exists(s_filename))
+                        {
+                            stream.LoadFromFile(s_filename);
+                            stream.Flush();
+                            msg.DataSource.OpenObject(stream, "_Stream");
+                            msg.DataSource.Save();
+
+                            if (msg.Attachments.Count != 0)
+                            {
+                                for (int j = 1; j <= msg.Attachments.Count; j++)
+                                {
+                                    //запишем в лог что у нас пришел файл
+                                    string s_err = "";
+                                }
+                            }
+                        }
+                        stream.Close();
+
+                        if (del_email_after_receiving && !b_exist_err)
+                        {
+                            DemoClient.DeleteEmail(i);
+                        }
+                    }
+                }
+
+                //close connection
+                DemoClient.Disconnect();
+            }
+            catch (Exception ex)
+            {
+                result = ex.Message + ex.StackTrace;
+            }
+
+            return result;
+        }
+    }
+}

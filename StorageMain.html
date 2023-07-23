@@ -1,0 +1,73 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+
+namespace StorageIni_Library
+{
+    public static class StorageMain
+    {       
+        public static bool storage_filled_completely = false;                                           //признак заполненности хранилища
+
+        public static string str_connect = "";                                                          //строка подключения
+
+        #region параметры для таймера
+        public static string s_temp_interval_fast_processing = "";                                      //врeменное хранилище для временных интервалов ускоренной обработки
+
+        public static string s_temp_timer_fast_processing_in_minute = "";                               //временное хранилище для задержек таймера в интервалах ускоренной обработки
+
+        public static int main_timer_value_in_ms;                                                       //основной таймер в милисекундах        
+
+        public static IList<MyIntervalType> List_intervals = new List<MyIntervalType>();                //список интервалов ускоренной обработки с задержками
+
+        public class MyIntervalType
+        {
+            public TimeSpan start, stop;                                                                //границы интервала ускоренной обработки
+
+            public int timer_value_in_ms;                                                               //задержка таймера для этого интервала
+        }
+        #endregion
+
+ 
+
+        #region параметры для почты
+        public static IList<string> List_permitted_emails = new List<string>();                         //список разрешенных почтовых ящиков от которых принимается почта
+
+        public static bool del_email_after_receiving;                                                  //удалять письмо после получения
+
+        public static bool get_emails_over_pop3_or_imap;                                                //получать через POP3 или IMAP
+
+        public static string _email;                                                                    //почтовый ящик/логин
+
+        public static string _pass;                                                                     //пароль
+
+        public static string _host;                                                                     //почтовый сервер
+
+        public static bool _use_ssl = false;                                                            //использовать SSL
+
+        public static int port;
+
+        public static string path_for_save_emails_and_attachments = "";                                 //куда сохранять eml-файлы и вложения
+        #endregion
+
+
+        #region параметры для перекладки файлов
+        public static string path_for_move_parsed_maket_files = "";                                     //путь-маска куда сохранять удачно распарсенные файлы макетов
+
+        public static string path_for_move_BAD_maket_files = "";                                        //путь-маска куда сохранять сбойные файлы макетов
+
+        public static bool del_old_makets;
+        #endregion
+
+
+        #region параметры нормирования отправки отчетов
+        public static int flag_info_has_sended = 0;  
+
+        public static int flag_info_need_to_send = 0;
+
+        public static int flag_dayly_send = 1;
+
+        public static DateTime control_date;
+        #endregion
+    }
+}

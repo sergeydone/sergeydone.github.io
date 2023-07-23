@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Postgresql DB analize">
+<meta name="keywords" content="Postgresql, analize">
+<title>Postgresql DB analize</title>
+</head>
+<body>
+<nav> <a href = "index.html"> --- Up </a></nav>
+
+<h1>Postgresql DB analize </h1>
+
+<h2> ### Набор отдельных запросов используемых для анализа состояния БД Postgresql </h2>
+
+
+
+<code>  </code>
+<div>   </div>
+<div>&nbsp</div>
+
+<h3> ## Анализ БД</h3>
+
+<div>
+# размер базы данных
+</div>
+
+<pre>
+	select pg_database_size('YOUR_DATABASE_NAME')/1024/1024;
+</pre>
+<div>&nbsp</div>
+
+<div>
+# количество подключений к БД
+</div>
+
+<pre>
+	select datname, numbackends from pg_stat_database
+</pre>
+<div>&nbsp</div>
+
+
+
+<div>
+# вывод статистики по подключениям к БД:
+</div>
+
+<pre>
+	select client_addr, count(datid) from pg_stat_activity group by client_addr--, client_addr
+</pre>
+<div>&nbsp</div>
+
+
+
+<div>
+# вывод оперативной информации по долгим запросам в БД:
+</div>
+<pre>
+	select now() - query_start, pid, waiting, application_name, client_addr, client_port, query from pg_stat_activity where state != 'idle' order by 1 desc
+</pre>
+<div>&nbsp</div>
+
+
+
+<h3> ## Анализ таблиц </h3>
+
+<div>
+# вывод статистики по таблицам БД:
+</div>
+<pre>
+	select last_autovacuum, relname, n_live_tup, n_dead_tup, autovacuum_count, * from pg_stat_user_tables order by /*autovacuum_count desc*/ last_autovacuum desc, relname
+</pre>
+<div>&nbsp</div>
+
+
+
+
+<div>
+# вывод статистики по живым и мертвым кортежам таблиц
+</div>
+
+<pre>
+	select relname tab, n_live_tup live, n_dead_tup dead, ((n_dead_tup::real) / (case when n_live_tup > 0 then n_live_tup else 1 end) ) k from pg_stat_user_tables order by 3 desc
+</pre>
+<div>&nbsp</div>
+
+<div>
+# вывод статитстических данных по количеству строк в таблицах:
+</div>
+
+<pre>
+	SELECT  nspname AS schemaname,relname,reltuples
+	FROM pg_class C
+	LEFT JOIN pg_namespace N ON (N.oid = C.relnamespace)
+	WHERE
+  	nspname NOT IN ('pg_catalog', 'information_schema') AND
+  	relkind='r'
+	ORDER BY reltuples DESC;
+</pre>
+<div>&nbsp</div>
+
+<div>
+/*
+</div>
+<div>
+-- select * from pg_statio_user_tables
+</div>
+<div>
+-- select * frompg_stat_user_indexes
+</div>
+<div>
+-- select * from pg_statio_user_indexes
+</div>
+<div>
+*/
+</div>
+<div>&nbsp</div>
+<div>&nbsp</div>
+
+<div>
+# просмотр блокировок:
+</div>
+</div>
+<div>
+/*
+</div>
+<div>
+-- select * from pg_locks
+</div>
+<div>
+-- SELECT * FROM pg_locks pl LEFT JOIN pg_stat_activity psa  ON pl.pid = psa.pid
+</div>
+<div>
+*/
+</div>
+<div>&nbsp</div>
+
+<pre>
+	SELECT pl.locktype, pl.mode, psa.application_name, psa.client_addr, psa.waiting, psa.state, psa.query, psa.backend_start, psa.state_change FROM pg_locks pl LEFT JOIN pg_stat_activity psa  ON pl.pid = psa.pid order by pl.mode, psa.query
+</pre>
+<div>&nbsp</div>
+<div>&nbsp</div>
+
+<div>
+# Поиск долгоиграющих транзакций:
+</div>
+
+<pre>
+	SELECT gid, prepared, owner, database, transaction AS xmin
+	FROM pg_prepared_xacts
+	ORDER BY age(transaction) DESC;
+</pre>
+<div>&nbsp</div>
+
+<div>
+# Поиск заброшенных репликаций
+</div>
+
+<pre>
+	SELECT slot_name, slot_type, database, xmin
+	FROM pg_replication_slots
+	ORDER BY age(xmin) DESC;
+</pre>
+<div>&nbsp</div>
+
+
+<div>
+# Поиск осиротевших подготовленных транзакций
+</div>
+
+
+<pre>
+	SELECT pid, datname, usename, state, backend_xmin, age(backend_xmin), *
+	FROM pg_stat_activity
+	WHERE backend_xmin IS NOT NULL
+	ORDER BY age(backend_xmin) DESC;
+</pre>
+<div>&nbsp</div>
+
+<div>
+# Подсчет занимаемого объема таблицами БД
+</div>
+
+<pre>
+	SELECT relname AS "table_name",
+	pg_size_pretty(pg_table_size(pgc.oid)) AS "space_used"
+	FROM pg_class AS pgc
+	LEFT JOIN pg_namespace AS pgns ON (pgns.oid = pgc.relnamespace)
+	WHERE nspname NOT IN ('pg_catalog', 'information_schema')   AND nspname !~ '^pg_toast' AND relkind IN ('r')
+	ORDER BY table_name -- pg_table_size(pgc.oid) DESC --LIMIT 25;
+</pre>
+ <div>&nbsp</div>
+
+
+ 
+<div>
+/*
+</div>
+<div>
+-- SELECT pid, query, * FROM pg_stat_activity WHERE pid = 6728
+</div>
+<div>
+*/
+</div>
+<div>&nbsp</div>
+<div>&nbsp</div>
+
+<div>
+#  Проверка выполнения автовакуума в текущий момент
+</div>
+
+<pre>
+	SELECT pid, query, * FROM pg_stat_activity WHERE query LIKE 'autovacuum: %'
+</pre>
+<div>&nbsp</div> 
+
+<h3>
+## Анализ индексов
+</h3>
+
+<div>
+# Статистика использования индексов:
+</div>
+
+
+<pre>
+	SELECT
+    t.schemaname,
+    t.tablename,
+    indexname,
+    c.reltuples AS num_rows,
+    pg_size_pretty(pg_relation_size(quote_ident(t.schemaname)::text || '.' || quote_ident(t.tablename)::text)) AS table_size,
+    pg_size_pretty(pg_relation_size(quote_ident(t.schemaname)::text || '.' || quote_ident(indexrelname)::text)) AS index_size,
+    CASE WHEN indisunique THEN 'Y'
+        ELSE 'N'
+    END AS UNIQUE,
+    number_of_scans,
+    tuples_read,
+    tuples_fetched
+	FROM pg_tables t
+	LEFT OUTER JOIN pg_class c ON t.tablename = c.relname
+	LEFT OUTER JOIN (
+    SELECT
+        c.relname AS ctablename,
+        ipg.relname AS indexname,
+        x.indnatts AS number_of_columns,
+        idx_scan AS number_of_scans,
+        idx_tup_read AS tuples_read,
+        idx_tup_fetch AS tuples_fetched,
+        indexrelname,
+        indisunique,
+        schemaname
+    FROM pg_index x
+    JOIN pg_class c ON c.oid = x.indrelid
+    JOIN pg_class ipg ON ipg.oid = x.indexrelid
+    JOIN pg_stat_all_indexes psai ON x.indexrelid = psai.indexrelid
+	) AS foo ON t.tablename = foo.ctablename AND t.schemaname = foo.schemaname
+	WHERE t.schemaname NOT IN ('pg_catalog', 'information_schema')
+	ORDER BY 1,2;
+</pre>
+<div>&nbsp</div>
+
+<div>
+# размер объектов в базе данных (таблиц и индексов), исключая pg_catalog information_schema.
+</div>
+
+<pre>
+	SELECT C.oid,C.relfilenode, nspname, relname AS "relation",
+	relkind, pg_size_pretty(pg_relation_size(C.oid)) AS "size"
+	FROM pg_class C
+	LEFT JOIN pg_namespace N ON (N.oid = C.relnamespace)
+	WHERE nspname NOT IN ('pg_catalog', 'information_schema')
+	ORDER BY pg_relation_size(C.oid) DESC;
+</pre>
+<div>&nbsp</div>
+
+<div>
+# Дублирующиеся индексы:
+</div>
+
+<pre>
+	SELECT pg_size_pretty(sum(pg_relation_size(idx))::bigint) as size,
+	(array_agg(idx))[1] as idx1, (array_agg(idx))[2] as idx2,
+	(array_agg(idx))[3] as idx3, (array_agg(idx))[4] as idx4
+	FROM (
+	SELECT indexrelid::regclass as idx, (indrelid::text ||E'\n'|| indclass::text ||E'\n'|| indkey::text ||E'\n'||
+	coalesce(indexprs::text,'')||E'\n' || coalesce(indpred::text,'')) as key
+	FROM pg_index) sub
+	GROUP BY key HAVING count(*)>1
+	ORDER BY sum(pg_relation_size(idx)) DESC;
+</pre>
+<div>&nbsp</div>
+<div>&nbsp</div>
+<div>&nbsp</div>
+
+<div>
+/*
+</div>
+<div>
+-- select * from pg_stat_all_indexes
+</div>
+<div>
+-- select * from pg_index
+</div>
+<div>
+-- select * from pg_tables
+</div>
+<div>
+-- select * from pg_namespace
+</div>
+<div>
+-- select * from pg_class where relkind = 'i'
+</div>
+<div>
+*/
+</div>
+<div>&nbsp</div>
+<div>&nbsp</div>
+
+</body>

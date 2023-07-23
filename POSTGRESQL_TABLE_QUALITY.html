@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Postgresql table quality">
+<meta name="keywords" content="Postgresql, table">
+<title>Postgresql DB tables quality</title>
+</head>
+<body>
+<nav> <a href = "index.html"> --- Up </a></nav>
+
+<h1>Postgresql DB tables quality </h1>
+
+<h2> ### Postgresql собственный расчетный "коэффициент качества таблиц" </h2>
+
+
+
+<code>  </code>
+<div>   </div>
+<div>&nbsp</div>
+
+
+
+<h3> ## Запрос для получения расчетного "коэффициента качества таблиц": </h3>
+
+<pre>
+	select last_autovacuum, relname, n_live_tup, n_dead_tup, autovacuum_count, * from pg_stat_user_tables order by /*autovacuum_count desc*/ last_autovacuum desc, relname
+</pre>
+<div>&nbsp</div>
+
+
+<div>При настройках по умолчанию автовакуум срабатывает когда количество мертвых кортежей в таблицы превышает 20%, то есть чем больше коэффициент, тем более "раздута" таблица, и чем он ближе коэффициент к значению 0.20, тем скорее должен сработать автовакуум. </div>
+<div>&nbsp</div>
+<div>&nbsp</div>
+
+</body>

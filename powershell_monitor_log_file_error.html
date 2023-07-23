@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Powershell">
+<meta name="keywords" content="Powershell">
+<title>Powershell</title>
+</head>
+<body>
+<nav> <a href = "index.html"> --- Up </a></nav>
+
+<h1>
+# ### Powershell script for monitoring Errors App(Service) in  log file with  App(Services) restarting and email or file report. You should set monitoring objects parameters and reporting options.  This script should work with administrative privileges.
+</h1>
+
+<pre>
+
+## Monitoring object parameter Service Template
+## $myScheduler = @([PSCustomObject]@{
+##     ticHour     = "07" 			        # set hours for report sending
+##     ticMinute   = "30" 			        # set minutes for report sending
+##     isService   =  1 			        # set 1  if it is a service
+##     myService   = "SERVICENAME" 		    # set service name  if using a service (for start operation)
+##     myApp       = "SERVICEPROCESS" 	# set process name (for stop operation)
+##     myAppPath =  "" 				        # set App path if it is NOT a service(for start operation)
+##     flagLogFilePathPartialNamesObject = 1 			# set Flag if use log file path partial names object ( default: 0 )
+##     logFilesPath = [pscustomobject]@{filePath="C:\APPLICATIONLOGFOLDER\";transportName=1} 	# set service or app log files path for monitoring
+##     startFileSize = 0 			        # set log file start  size, bytes ( default: 0 )
+##     flagRangeHour = 0 			        # set Flag - use time range for log file monitoring ( default: 0 )
+##     startHour = "01" 			        # set time to start log file size monitoring (set if flagRangeHour has set to 1)
+##     stopHour = "23" 				        # set time to stop log file size monitoring (set if flagRangeHour has set to 1)
+##     checkFrequency = 60 			        # set log file checking frequency (internal timer), min
+##     restart = 1 				            # set restart option for service or app
+##     myErrTemp = "IOException"            # set error string for restarting
+##     inTimer = 0                          # init internal timer ( default: 0 )
+##     inMyErrLimit = 0                     # init internal errors amount ( default: 0 )
+##     inMyRestartStatus = 0                # init internal flag for restart ( default: 0 )
+##     checkFrequencyDelay = 0              # init internal delay for check ( default: 0 )
+## })
+##
+## Monitoring object parameter App Template 
+## $myScheduler = @([PSCustomObject]@{
+##     ticHour     = "07" 			        # set hours for report sending
+##     ticMinute   = "30" 			        # set minutes for report sending
+##     isService   =  0 			        # set 1  if it is a service
+##     myService   =  "" 			        # set service name  if using a service (for start operation)
+##     myApp       = "APPPROCESS" 		    # set process name (for stop operation)
+##     myAppPath =  "C:\APPFOLDER\APP.exe" 					# set App path if it is NOT a service(for start operation)
+##     flagLogFilePathPartialNamesObject = 0 							# set Flag if use log file path partial names object ( default: 0 )
+##     logFilesPath = [pscustomobject]@{filePath="C:\APPLOGFOLDER\";myLogFile="APPLOGFILENAME"} 	# set service or app log files path for monitoring
+##     startFileSize = 0 			        # set log file start  size, bytes ( default: 0 )
+##     flagRangeHour = 1 			        # set Flag - use time range for log file monitoring ( default: 0 )
+##     startHour = "06" 			        # set time to start log file size monitoring (set if flagRangeHour has set to 1)
+##     stopHour = "17" 				        # set time to stop log file size monitoring (set if flagRangeHour has set to 1)
+##     checkFrequency = 60 			        # set log file checking frequency (internal timer), min
+##     restart = 1 				            # set restart option for service or app
+##     myErrTemp = "IOException"            # set error string for restarting
+##     inTimer = 0                          # init internal timer ( default: 0 )
+##     inMyErrLimit = 0                     # init internal errors amount ( default: 0 )
+##     inMyRestartStatus = 0                # init internal flag for restart ( default: 0 )
+##     checkFrequencyDelay = 0              # init internal delay for check ( default: 0 )
+## })
+##
+
+
+# Set monitoring object parameters
+
+# Set monitoring object parameters
+$myScheduler = @([PSCustomObject]@{
+    ticHour     = "07" 
+    ticMinute   = "30" 
+    isService   =  0  
+    myService   =  "" 
+    myApp       =  "calc" 
+    myAppPath =    "c:\windows\system32\calc.exe" 
+    flagLogFilePathPartialNamesObject = 0 
+    logFilesPath = [pscustomobject]@{filePath="C:\APPLOGFOLDER\";myLogFile="APPLOGFILE"} 
+    startFileSize = 0
+    flagRangeHour = 1
+    startHour = "02"
+    stopHour = "23"
+    checkFrequency = 1 
+    restart = 0
+    myErrTemp = "IOException"
+    inTimer = 0
+    inMyErrLimit = 0
+    inMyRestartStatus = 0
+    checkFrequencyDelay = 0
+},[PSCustomObject]@{
+    ticHour     = "07" 
+    ticMinute   = "30" 
+    isService   =  0  
+    myService   =  ""
+    myApp       =  "calc"
+    myAppPath =    "c:\windows\system32\calc.exe"
+    flagLogFilePathPartialNamesObject = 0 
+    logFilesPath = [pscustomobject]@{filePath="C:\APPLOGFOLDER\";myLogFile="APPLOGFILE"} 
+    startFileSize = 0
+    flagRangeHour = 1
+    startHour = "02"
+    stopHour = "23"
+    checkFrequency = 1 # minute
+    restart = 0
+    myErrTemp = "IOException"
+    inTimer = 0
+    inMyErrLimit = 0
+    inMyRestartStatus = 0
+    checkFrequencyDelay = 0
+})
+
+# set sleep interval between starting and stopping the service or App, seconds
+$mySleepTime = 30
+
+# Set saving log flag
+$mySaveToLogFile = 1
+
+# Set local path to save log
+$myPathLog = "C:\Logs\MonitoringLogs"
+
+# Set send email flag (Optional)
+$mySaveToSendEmail = 0
+
+# set email credential   (Optional)
+#  $UserName = "EMAILLOGIN"
+#  $Pass = ConvertTo-SecureString "..." -AsPlainText -Force
+#  $MyCred = New-Object -TypeName PSCredential -ArgumentList $UserName, $Pass
+
+# set email receiver address 1 (Optional)
+$email1 = "EMAIL@DOMAIN"
+
+# set email receiver address 2 (Optional)
+$email2 = "EMAIL@DOMAIN"
+
+# set email sender address (Optional)
+$emailSender = "EMAIL@DOMAIN"
+
+# set SMTP server (Optional)
+$smtpServer = "1.1.1.1"
+
+
+# ###### Start Workflow !
+
+# Define function for saving log
+function Save-LocalMessage
+{
+	param ($Subject, $Body, $To)
+	
+	# Init log file name components
+	$myName = $env:computername
+	$myCurrentTime = Get-Date -f "yyyyMMddHHmmss"
+
+	# Save log file
+	if((Test-Path $myPathLog) -or ($mySaveToLogFile -eq 1))
+	{
+		$myFullPath = $To + "\"+ $myCurrentTime + "_" + $myName + "_"+ "MonLog" + ".txt"
+
+		$LogVar = "" + $Body
+
+		$LogVar | out-file -filepath $myFullPath -width 200  
+
+		Write-Host Log has been created successfully
+	}
+	else 
+	{
+		Write-Host  Sorry but Log file directory not defined
+	}
+}
+
+
+Write-Host "PowerShell script for Log file ERRORS monitoring and Services or App restarting"
+
+# Get server name for report
+$myServerName = $env:computername
+
+# init base date
+$baseDate = (Get-Date -f "yyyy") + (Get-Date -f "MM") + (Get-Date -f "dd")
+
+# init flag first run
+$myFirstRunFlag = 2
+
+
+while ($true) 
+{
+	# get current date
+	$currentDate = (Get-Date -f "yyyy") + (Get-Date -f "MM") + (Get-Date -f "dd")	
+
+	# get current hour
+	$currentHour = Get-Date -f "HH"
+
+	# get current minute
+	$currentMinute = Get-Date -f "mm"
+
+	# check if date changed
+	if($currentDate -ne $baseDate)   
+	{
+		# Because date changed, init error limits number
+		foreach ($element in $myScheduler)  
+		{
+			$element.inMyErrLimit = 0
+		}
+ 
+		# Because date changed, init new base date
+		$baseDate = (Get-Date -f "yyyy") + (Get-Date -f "MM") + (Get-Date -f "dd")
+	}
+
+	# Init resulting report array
+	$myResultData = @()
+
+	# Init my send message flag
+	$mySendMessageFlag = 0
+
+
+	foreach ($element in $myScheduler)  #Element
+	{
+
+			# initial errors count 
+			$myErrCount = 0
+
+			# Init processing flag  
+			$myProcessingFlag = 0
+
+
+
+			if($element.inTimer -eq ($element.checkFrequency + $element.checkFrequencyDelay))  								# Internal timer workflow
+			{				                  								# Internal timer workflow
+				$element.inTimer = 0                      								# Internal timer workflow
+  
+				# because it is NOT time to send report - check processing flag and restart service or App if it need to
+
+				# Check time range and change processing flag if it neeed to
+				if($element.flagRangeHour -eq 1) 
+				{
+					if(($currentHour -gt $element.startHour) -and ($currentHour -lt $element.stopHour))
+					{
+						$myProcessingFlag = 1
+					}
+				} else {
+					$myProcessingFlag = 1
+				}
+
+				if($myProcessingFlag -eq 1) ###ProcessingFLAG
+				{
+
+					# Init alert flag for restarting Service or App				
+					$myAlertFlag = 0
+
+					# Init message content
+		       		$mySubject = ""
+	   				$myMessage = ""
+					$fileName = ""
+					$tempName = ""
+
+					# Get filename for each element object
+					if($element.flagLogFilePathPartialNamesObject -eq 1)
+					{
+						$fileName = $element.logFilesPath.filePath + $currentDate + "_" + $element.logFilesPath.transportName + ".log" 
+					}  else  {
+						$fileName = $element.logFilesPath.filePath +  $currentDate + "\" + $element.logFilesPath.myLogFile + ".log"
+					}
+
+					# Get service or App name for future reports
+					if($element.isService -eq 1)
+					{
+						$tempName = "Service " + $element.myService
+					}   else   {
+						$tempName = "App " + $element.myApp
+					}
+
+					# Check log file present  
+					if(Test-Path $fileName) ###FilePresent
+					{
+
+						# If log file has been present, get errors number from the file
+						$myAlertFlag = 0
+						
+						  $myErrCount = (( Get-Content -Path $fileName ) | Select-String -Pattern $element.myErrTemp ).count
+
+						if($myErrCount -gt $element.inMyErrLimit)  
+						{
+                            if($myFirstRunFlag -eq 0) # if not first run
+                            {
+                                # If new error has been rased - set flag to restart service or App
+							    $myAlertFlag = 1
+                                $element.inMyRestartStatus = 1
+                            
+							    # get last string from log 
+							    # $lastRecord = "Ñîäåðæèìîå ïîñëåäíèõ ñòðîê ëîãà: /*"+ (Get-Content -Tail 3 $myLog)  +"*/"
+							    $lastRecord = "" + (Get-Content -Tail 10 $fileName)
+
+							    # Maintain results
+							    if($element.flagLogFilePathPartialNamesObject -eq 1)
+							    { 
+								    $newResult = "" + $tempName + " Transport "+ $element.logFilesPath.transportName + "  has an error!  " + " in log file: " + $fileName
+							    }  else  {
+								    $newResult = "" +  $tempName + "  has an error!  " + " in log file: " + $fileName
+							    }
+							
+							    # Prepare report string
+		       					    $mySubject = "Alert: " + $tempName + " "+ $myServerName
+	   						    $myMessage = $newResult + " Last log record: " +  $lastRecord
+
+
+                                # Check frequency returned to standard value 
+                                $element.checkFrequencyDelay = 0 
+
+                            }
+
+                            # Increase errors counter limit
+							$element.inMyErrLimit = $MyErrCount
+
+						} else { # There no new errors
+							# It is OK 
+
+                            # Check frequency returned to standard value 
+                            $element.checkFrequencyDelay = 0
+						}
+					
+
+					} else {
+						# if file not found - set flag to restart service or App
+						$myAlertFlag = 1
+	                    $element.inMyRestartStatus = 1
+
+                        # Check frequency Decreased  to prevent permanent restart 
+                        $element.checkFrequencyDelay = $element.checkFrequencyDelay + 2 #60
+
+						# Maintain results
+						if($element.flagLogFilePathPartialNamesObject -eq 1)
+						{
+							$newResult = "" + $tempName + " Transport "+ $element.logFilesPath.transportName + "  has stopped! "
+						} else {
+							$newResult = "" +  $tempName + "  has stopped!  "
+						}
+							
+						# Prepare report string
+		       			$mySubject = "Alert: " + $tempName + " "+ $myServerName
+	   					$myMessage = $newResult + " Log file " + $fileName + " has not found"
+
+					}###FilePresent
+	
+					if($myAlertFlag -eq 1)   #### AlertTOReport
+					{
+						# Add report string into resulting object
+						$properties = @{
+		                           	     Subject = $mySubject
+	        					Body = $myMessage
+	               				}
+						$obj = New-Object -TypeName PSObject -Property $properties
+	
+						$myResultData += $obj
+	
+						# Change send message flag
+						$mySendMessageFlag = 1
+	
+					}  ####  AlertTOReport
+			
+				
+
+					
+				} ###ProcessingFLAG
+			
+			} else {	                      										# Internal timer workflow
+				# Write-Host Do nothing 
+			}                                 										# Internal timer workflow
+			$element.inTimer += 1
+                     															# Internal timer workflow
+			# Write-Host $element.inTimer
+	}
+
+	##
+	# Prepare resulting restarting Servises and Apps with duplicate restarting tasks Excluding 
+    foreach ($element in $myScheduler)
+    {
+    				# Restart service or App if alert flag has been set and element property: restart = 1 
+	
+					if(($element.inMyRestartStatus -eq 1) -and ($element.restart -eq 1)) ####Restart  
+					{
+						# Try to restart Service or App
+		
+						Write-Host "try to restart "  $tempName
+						
+						$myAppState = Get-Process -Name $element.myApp -ErrorAction SilentlyContinue
+							
+						if($myAppState)
+						{
+							# stop App
+							foreach($appState in $myAppState) { $appState | Stop-Process -Force }
+					
+							# Write-Host It has been stopped
+							sleep -seconds $mySleepTime  
+	
+							if(!$myAppState.HasExited)
+							{
+	       							foreach($appState in $myAppState) { $appState.Kill() }
+							}
+		
+							sleep -seconds $mySleepTime 
+	  					
+							if ($element.isService -eq 1) 
+							{
+								# start Service
+								Get-Service $element.myService | Where {$_.status -eq 'Stopped'} | Start-Service
+	
+								# Write-Host Service has started
+							} else {
+								# start App
+								Invoke-Item $element.myAppPath
+	
+								# Write-Host App has started
+							}
+	
+							sleep -seconds $mySleepTime
+	
+						} else {
+							if ($element.isService -eq 1) 
+							{
+								# start Service
+								Get-Service $element.myService | Where {$_.status -eq 'Stopped'} | Start-Service
+				
+								# Write-Host Service has started
+							} else {
+								# start App
+								Invoke-Item $element.myAppPath
+	
+								# Write-Host App has started
+							}
+	
+							sleep -seconds $mySleepTime
+						}
+	
+	
+						### #AddReport
+	
+						if ($element.isService -eq 1) 
+						{
+							# Create a report about Service state
+		    					$myServiceStatus = Get-Service -Name $element.myService -ErrorAction SilentlyContinue
+	      			
+							if($myServiceStatus.Status -eq 'Running')
+							{
+		       						Write-Host Service has restarted
+	
+								# Prepare report string
+		       						$mySubject = "Alert: " + $element.myService + " "+ $myServerName
+	    							$myMessage = "Service " + $element.myService + " has restarted"
+	
+								# Add report string into resulting object
+								$properties = @{
+				                        	        Subject = $mySubject
+	        							Body = $myMessage
+	                        				}
+								$obj = New-Object -TypeName PSObject -Property $properties
+	
+								$myResultData += $obj
+	
+								# Change send message flag
+								$mySendMessageFlag = 1
+	   						}  
+						} else {
+							# Create a report about App state
+							$myAppState = Get-Process -Name $element.myApp -ErrorAction SilentlyContinue
+							if($myAppState)
+							{
+								Write-Host App has restarted
+	
+								# Prepare report string
+		       						$mySubject = "Alert: " + $element.myApp + " "+ $myServerName
+	    							$myMessage = "App " + $element.myApp + " has restarted"
+	
+								# Add report string into resulting object
+								$properties = @{
+				                                	Subject = $mySubject
+	        							Body = $myMessage
+	                        				}
+								$obj = New-Object -TypeName PSObject -Property $properties
+	
+								$myResultData += $obj
+	
+								# Change send message flag
+								$mySendMessageFlag = 1
+							}
+						}
+						### #AddReport
+
+                        ### #Excluding duplicate restarting tasks start
+                        foreach ($elementToCheck in $myScheduler) 
+                        {
+                            if($elementToCheck.myApp -eq $element.myApp) 
+                            {
+                                $elementToCheck.inMyRestartStatus = 0
+                            }
+                        }
+                        ### #Excluding duplicate restarting tasks finish
+                        
+					} ####Restart 
+    }   
+	##
+
+	# Prepare resulting report for sending
+	if($mySendMessageFlag -eq 1) 
+	{
+	
+		$myResultMessage = ""
+		$myResultSubject = ""
+		$myResultAlertMessage = ""
+	
+		foreach($element in $myResultData)
+		{
+			$myResultSubject = $element.Subject 
+			$myResultMessage += " `r`n " + $element.Body
+			$myResultAlertMessage += " `r`n " + "" + $element.Subject + " : " + $element.Body
+		} 
+
+		# Send email			
+		if($mySaveToSendEmail -eq 1)
+		{
+			if($MyCred) {Send-MailMessage -From $emailSender -To $email1 -Subject $myResultSubject -SmtpServer $smtpServer -Credential $MyCred -Body $myResultMessage -Encoding UTF8} else {Write-Host "Sorry. Email credential hasn't defined yet"}
+		}
+	
+		# Save local log
+		if($mySaveToLogFile -eq 1)
+		{
+			Save-LocalMessage -Subject $myResultSubject -Body $myResultAlertMessage -To $myPathLog
+		}
+	}		
+    
+    # Change first run flag
+    If ($myFirstRunFlag -gt 0) 
+    { 
+        $myFirstRunFlag = $myFirstRunFlag - 1
+    }
+
+	# Write-Host "One minute tic"
+  	sleep -seconds 60 
+}
+</pre>
+</body>
+</html>

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Powershell">
+<meta name="keywords" content="Powershell">
+<title>Powershell</title>
+</head>
+<body>
+<nav> <a href = "index.html"> --- Up </a></nav>
+
+<h1> 
+
+# Update APP folders and files in users directories
+</h1>
+ 
+<pre>
+# Set Source Updates directory
+
+[string]$sourceDirectory = "C:\Install\datetime\Catalog\*"
+
+ 
+
+# Set Users destination directory
+
+[string]$destinationDirectory = "C:\Users"
+
+ 
+
+# Set destination directory name of the Catalog  program directory in users directories
+
+$NameToFind = "Catalog"
+
+ 
+
+# Set local path to save log
+
+$myPath = "C:\Install\datetime_Update_Log\"
+
+ 
+
+# Write-Host Started
+
+ 
+
+# get date
+
+$currentDate = "" + (Get-Date).ToString('yyyy-MM-dd hh:mm')
+
+ 
+
+# Init log file name
+
+if(Test-Path $myPath)
+
+{
+
+$myFullPath = $myPath + "CatalogUpdateLog" + ".txt"
+
+ 
+
+ 
+
+# Initialize log variable
+
+$LogVar = "";
+
+ 
+
+# Replace files in Users directories with files from Source Updates directory
+
+Get-ChildItem $destinationDirectory -Recurse | Where-Object { $_.PSIsContainer -and $_.Name.EndsWith($NameToFind) } |
+
+ForEach-Object {
+
+$destinationDirectory = $_.FullName + "\";
+
+Write-Host "View directory " $destinationDirectory ;
+
+if(Test-Path($destinationDirectory)) {
+
+                Copy-item -Force -Recurse  $sourceDirectory -Destination $destinationDirectory;
+
+                $LogVar = "Updated directory " + $destinationDirectory + "   " + $currentDate + "";
+
+                Write-Host $LogVar; $LogVar | out-file -filepath $myFullPath -append -width 200  }
+
+else {  $LogVar = $destinationDirectory + " : User have no App installed "; $LogVar | out-file -filepath $myFullPath -append -width 200 } }
+
+ 
+
+Write-Host Ended successfully
+
+ 
+
+}
+
+else
+
+{
+
+Write-Host Update skipped. Sorry but Log file directory not defined
+
+}
+
+ </pre>
+</body>
+ </html>
