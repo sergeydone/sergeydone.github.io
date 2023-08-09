@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Powershell script encryption">
+<meta name="keywords" content="Powershell, script, encryption">
+<title>Powershell script to encrypt a text string </title>
+</head>
+<body>
+<nav> <a href = "index.html"> --- Up </a></nav>
+
+<h1>Powershell script to encript a text string </h1>
+
+<h2>## Powershell script : </h2>
+
+<pre> 
+# Text to encrypt
+$textToEncrypt = "SensitiveTextValue"
+
+# Encryption key (replace with your actual key)
+$encryptionKey = "YourEncryptionKey123"
+
+# Convert the text to bytes
+$textBytes = [System.Text.Encoding]::UTF8.GetBytes($textToEncrypt)
+
+# Convert the encryption key to bytes using a key derivation function (e.g., PBKDF2)
+$keyDerivationFunction = New-Object System.Security.Cryptography.Rfc2898DeriveBytes -ArgumentList ($encryptionKey, [System.Text.Encoding]::UTF8.GetBytes("SaltValue123"), 1000)
+$aesKey = $keyDerivationFunction.GetBytes(32)  # 256-bit key size
+
+# Initialize AES encryption
+$aes = [System.Security.Cryptography.AesManaged]::new()
+$aes.Key = $aesKey
+
+# Encrypt the bytes
+$encryptedBytes = $aes.CreateEncryptor().TransformFinalBlock($textBytes, 0, $textBytes.Length)
+
+# Convert the encrypted bytes to Base64
+$encryptedBase64 = [Convert]::ToBase64String($encryptedBytes)
+
+# Save the encrypted Base64 string to a file
+$encryptedBase64 | Set-Content -Path "C:\install\trash.txt" -Encoding UTF8
+
+# Read the encrypted Base64 string from the file
+$encryptedBase64 = Get-Content -Path "C:\install\trash.txt" -Raw
+
+# Convert the Base64 string to encrypted bytes
+$encryptedBytes = [Convert]::FromBase64String($encryptedBase64)
+
+# Decrypt the bytes
+$decryptedBytes = $aes.CreateDecryptor().TransformFinalBlock($encryptedBytes, 0, $encryptedBytes.Length)
+
+# Convert the decrypted bytes to text
+$decryptedText = [System.Text.Encoding]::UTF8.GetString($decryptedBytes)
+
+# Display the decrypted text
+Write-Output "Decrypted Text: $decryptedText"
+</pre>
+<div>&nbsp</div>
+
+<div>&nbsp</div>
+</body>
+</html>
