@@ -76,6 +76,7 @@
    mysql> show status like 'Conn%';
 </pre>
 
+
 <div> Просмотр процессов в базе данных mysql:</div>
 <pre>
    show processlist;
@@ -148,6 +149,9 @@
    --ignore-table=DATABASENAME.TABLENAME4 &gt myExportFile.sql
 </pre>
  
+
+<div> Очистка списка хостов заблокированных базой данных </div>
+<pre> mysqladmin -u USERNAME -p flush-host </pre>
 
 
 </body>
