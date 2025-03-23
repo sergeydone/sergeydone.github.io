@@ -206,5 +206,54 @@
 <div> # [ОПЦИОНАЛЬНО] выход из сеанса суперпользователя postgres</div>
 <code>CTRL+d</code>
 <div>&nbsp</div>
+    <pre>
+## 1 - enable the PostgreSQL official repository command:
+sudo dnf install -y https://download.postgresql.org/pub/repos/yum/reporpms/EL-8-x86_64/pgdg-redhat-repo-latest.noarch.rpm
+
+## 2 - disable postgresql module that might conflict with the version command:
+sudo dnf -qy module disable postgresql
+
+## -- insall the postgresql 12 command: 
+sudo dnf install -y postgresql12-server postgresql12
+
+## -- initialize the postgresql database command:
+sudo /usr/pgsql-12/bin/postgresql-12-setup initdb
+
+## -- start the postgresql servise and eneble it to boot
+sudo systemctl start postgresql-12
+sudo systemctl enable postgresql-12
+
+## -- edit the pg_hba.conf file command:
+sudo vi /var/lib/pgsql/12/data/pg_hba.conf
+
+## -- edit the postgresql.conf file command:
+sudo vi /var/lib/pgsql/12/data/postgresql.conf
+
+## -- restart the service 
+sudo systemctl restart postgresql-12
+
+## -- enter psql command:
+sudo -u postgres psql
+
+## -- exit psql command:
+\q
+
+## -- open firewall port command:
+sudo firewall-cmd --permanent --add-port=5432/tcp
+sudo firewall-cmd --reload
+sudo firewall-cmd --list-ports
+
+## -- list the installed extensions 
+SELECT * FROM pg_extension;
+
+## -- chech if postgresql12-contrib has been installed command:
+sudo dnf list installed | grep postgresql12-contrib
+
+## 3 - install postgresql12-contrib extension command:
+sudo dnf install postgresql12-contrib
+
+## -- verify the extension is present command:
+ls /usr/pgsql-12/share/extension/postgres_fdw*        
+    </pre>
 </body>
 </html>
