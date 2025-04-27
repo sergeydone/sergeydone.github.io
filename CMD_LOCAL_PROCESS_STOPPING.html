@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="CMD local process stopping">
+<meta name="keywords" content="CMD">
+<title>CMD LOCAL PROCESS STOPPING </title>
+</head>
+<body>
+<nav> <a href = "index2.html"> --- Up </a></nav>
+
+<h1>Windows CMD local process stopping </h1>
+
+<h2>## Stopping all processes from selected folder: </h2>
+
+<code> 
+
+# Set target path
+$path = "c:\Path"
+
+$processes = Get-Process | Where-Object { $_.Path -like "$path\*" }
+
+foreach ($process in $processes)
+{
+	Write-Host "Stopping process" ($process.Name) " with ID " ($process.Id) "."
+	Stop-Process -Id $Process.Id -Force
+}
+
+Write-Host "All processes from" $path "stopped "
+
+</code>
+<div>&nbsp</div>
+
+
+<h2>## Get remote server user sessions: </h2>
+
+<code> 
+quser /server:IP_ADDRESS_SERVER
+</code>
+
+<div>&nbsp</div>
+<p> or </p>
+
+<code>
+qwinsta /server:IP_ADDRESS_SERVER
+</code>
+
+<div>&nbsp</div>
+
+<h2>## Log Off remote server user by his session ID: </h2>
+
+<code> 
+logoff ... /server:IP_ADDRESS_SERVER
+
+</code>
+<div>&nbsp</div>
+
+<div>&nbsp</div>
+</body>
+</html>
