@@ -17,20 +17,20 @@ with wal archives:</h2>
 
 
 
-<div> # 1 ####### Install Postgresql master </div>
+<h3> # 1 ####### Install Postgresql master </h3>
 <pre>
 sudo dnf install postgresql postgresql-server
 systemctl postgresql enable
 systemctl postgresql start
 </pre>
-<div>&nbsp</div>
+<h3>&nbsp</h3>
 
-<div># 2 ####### Install Postgresql slave</div>
+<h3># 2 ####### Install Postgresql slave</h3>
 <pre>sudo dnf install postgresql postgresql-server</pre>
-<div>&nbsp</div>
+<h3>&nbsp</h3>
 
 
-<div> # 3 ####### Create DB Master </div>
+<h3> # 3 ####### Create DB Master </h3>
 <pre>sudo su postgres
 
 psql
@@ -55,9 +55,9 @@ from generate_series(100000, 200000) as gs(i);
 CREATE USER replica REPLICATION LOGIN CONNECTION LIMIT 2 ENCRYPTED PASSWORD 'StrongPassword'
 
 </pre>
-<div>&nbsp</div>
+<h3>&nbsp</h3>
 
-<div># 4 ####### Setup Master DB </div>
+<h3># 4 ####### Setup Master DB </h3>
 <pre>
 vi /var/lib/pgsql/data/postgesql.conf
 listen_addresses = '*'
@@ -71,32 +71,32 @@ vi /var/lib/pgsql/data/pg_hba.conf
 host  all  all  0.0.0.0/0   md5
 host  replication replica 0.0.0.0/0 md5
 </pre>
-<div>&nbsp</div>
+<h3>&nbsp</h3>
 
-<div># 5 ####### Setup Master Archive Folder </div>
+<h3># 5 ####### Setup Master Archive Folder </h3>
 <pre>
 sudo mkdir -p /var/lib/pgsql/wal_archive
 sudo chown postgres:postgres /var/lib/pgsql/wal_archive
 chmod 700 /var/lib/pgsql/wal_archive
 </pre>
-<div>&nbsp</div>
+<h3>&nbsp</h3>
 
-<div># 6 ####### Setup Master Firewall  (optional)</div>
+<h3># 6 ####### Setup Master Firewall  (optional)</h3>
 <pre>
 sudo firewall-cmd --permanent --add-service=postgresql
 sudo firewall-cmd --reload
 </pre>
-<div>&nbsp</div>
+<h3>&nbsp</h3>
 
-<div># 7 ####### Setup Slave Archive Folder </div>
+<h3># 7 ####### Setup Slave Archive Folder </h3>
 <pre>
 sudo mkdir -p /var/lib/pgsql/wal_archive
 sudo chown postgres:postgres /var/lib/pgsql/wal_archive
 chmod 700 /var/lib/pgsql/wal_archive
 </pre>
-<div>&nbsp</div>
+<h3>&nbsp</h3>
 
-<div># 8 ####### Setup Slave DB</div>
+<h3># 8 ####### Setup Slave DB</h3>
 <pre>
 sudo rm -rf /var/lib/pgsql/data/*
 
@@ -123,23 +123,23 @@ systemctl enable postgresql
 systemctl start postgresql
 
 </pre>
-<div>&nbsp</div>
+<h3>&nbsp</h3>
 
 
-<div># 9 ####### Setup Master Firewall (optional) </div>
+<h3># 9 ####### Setup Master Firewall (optional) </h3>
 <pre>
 sudo firewall-cmd --permanent --remove-service=postgresql
 sudo firewall-cmd --reload
 </pre>
-<div>&nbsp</div>
+<h3>&nbsp</h3>
 
-<div> # 10 ####### COPY wal files from Master to Slave </div>
+<h3> # 10 ####### COPY wal files from Master to Slave </h3>
 <pre>
 rsync -avz -e "ssh -p 22" /var/lib/pgsql/wal_archive/ root@IPADDRESS:/var/lib/pgsql/wal_archive/ 
 </pre>
-<div>&nbsp</div>
+<h3>&nbsp</h3>
 
-<div># 11 ####### Examine the logs  </div>
+<h3># 11 ####### Examine the logs  </h3>
 <pre>
 sudo journalctl -u postgresql -f
 sudo journalctl -u postgresql.service -b --no-pager | tail -n 50
@@ -147,7 +147,7 @@ journalctl -xeu postgresql.service
 </pre>
 
 
-<div>&nbsp</div>
+<h3>&nbsp</h3>
 
 
 
@@ -162,36 +162,36 @@ journalctl -xeu postgresql.service
 ================ADDITION==================
 </summary>
 
-<div>#  ####### Alternate way to copy start DB before replication  </div>
+<h3>#  ####### Alternate way to copy start DB before replication  </h3>
 <pre>
 sudo systemctl stop postgresql
 rsync -avz /var/lib/pgsql/data/ user@fedoraB:/var/lib/pgsql/data/
 sudo chown -R postgres:postgres /var/lib/pgsql/data/
 </pre>
-<div>&nbsp</div>
+<h3>&nbsp</h3>
 
-<div> # Test basic TCP connec </div>
+<h3> # Test basic TCP connec </h3>
 <pre>
 sudo dnf install -y telnet  # If telnet not installed
 telnet 192.168.1.1 5432
 </pre>
-<div>&nbsp</div>
+<h3>&nbsp</h3>
 
-<div># Or use netcat</div>
+<h3># Or use netcat</h3>
 <pre>
 sudo dnf install nc
 nc -zv 192.168.1.1 5432
 </pre>
-<div>&nbsp</div>
+<h3>&nbsp</h3>
 
-<div># Or with PostgreSQL client</div>
+<h3># Or with PostgreSQL client</h3>
 <pre>
 psql -h 192.168.1.1 -p 5432 -U youruser -d yourdb
 </pre>
-<div>&nbsp</div>
+<h3>&nbsp</h3>
 
 
-<div># Open firewall options</div>
+<h3># Open firewall options</h3>
 <pre>
 sudo firewall-cmd --permanent --add-port=5432/tcp
 sudo firewall-cmd --add-service=postgresql
@@ -202,16 +202,16 @@ sudo firewall-cmd --zone=public --remove-service=postgresql
 sudo firewall-cmd --zone=public --permanent --remove-service=postgresql
 sudo firewall-cmd --reload
 </pre>
-<div>&nbsp</div>
+<h3>&nbsp</h3>
 
 
-<div># Verify the firewall rule</div>
+<h3># Verify the firewall rule</h3>
 <pre>
 sudo firewall-cmd --list-all
 </pre>
-<div>&nbsp</div>
+<h3>&nbsp</h3>
 
-<div># Wireshark</div>
+<h3># Wireshark</h3>
 <pre>
 sudo dnf install wireshark-cli
 sudo tshark -i any
@@ -220,16 +220,16 @@ sudo tshark -i any -f "src host 172.234.103.137"
 sudo tshark -i any -f "dst host 172.234.103.137"
 -t u (UTC time):
 </pre>
-<div>&nbsp</div>
+<h3>&nbsp</h3>
 
 
-<div># Set timezone</div>
+<h3># Set timezone</h3>
 <pre>
 sudo timedatectl set-timezone Europe/Kyiv
 timedatectl list-timezones
 timedatectl
 </pre>
-<div>&nbsp</div>
+<h3>&nbsp</h3>
 
 </details>
 </body>
