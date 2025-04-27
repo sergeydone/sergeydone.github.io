@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="SQLite database">
+<meta name="keywords" content="SQLite, database ">
+<title>SQLite database merging</title>
+</head>
+<body>
+<nav> <a href = "index2.html"> --- Up </a></nav>
+
+<h1>SQLite добавление данных в одну БД из другой БД </h1>
+
+<h2>Запуск SQLite CLI:</h2>
+
+<div> Запустить CMD и перейти в каталог sqlite driver:</div>
+<pre>
+    cd C:\Program Files\SQLite ODBC Driver for Win64
+</pre>
+
+<div> Запустить SQLite CLI:</div>
+<pre>
+    sqlite3.exe "C:\DB_catalog\database.db"
+</pre>
+
+
+<h2>Операции в SQLite CLI:</h2>
+
+<div> Просмотр таблиц БД:</div>
+<pre>
+    .tables
+</pre>
+
+<div> Вывод списка полей таблицы в БД SQLite:</div>
+<pre>
+    PRAGMA table_info(table_name);
+</pre>
+
+<div> или:</div>
+<pre>
+    SELECT sql FROM sqlite_master WHERE type='table' AND name='table_name';
+</pre>
+
+ 
+<div> Присоедение второй БД SQLite  данные из которой нужно взять:</div>
+<pre>
+    ATTACH DATABASE "C:\DB_catalog\database2.db" AS second_db;
+</pre>
+
+<div> Просмотр таблиц БД:</div>
+<pre>
+    .tables
+</pre>
+
+<div> Мержинг </div>
+<pre>
+    INSERT INTO table_name (col1, col2, col3)
+    SELECT col1, col2, col3
+    FROM second_db.table_name;
+</pre>
+
+<div> Отследение второй БД SQLite:</div>
+<pre>
+    DETACH DATABASE second_db;
+</pre>
+
+
+<div> Очистка БД SQLite:</div>
+<pre>
+    vacuum;
+</pre>
+
+
+<div> Отключение от БД SQLite:</div>
+<pre>
+    .exit
+</pre>
+
+
+
+
+ 
+
+
+</body>
+</html>

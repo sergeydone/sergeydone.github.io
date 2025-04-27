@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Google Chrome history">
+<meta name="keywords" content="Google, Chrome , history">
+<title>Google Chrome history</title>
+</head>
+<body>
+<nav> <a href = "index2.html"> --- Up </a></nav>
+
+<h1>Google Chrome history  </h1>
+
+<h2>Google Chrome user profile history is accessible in local directory: </h2>
+<pre>
+AppData\Local\Google\Chrome\User Data\Default
+</pre>
+<div>
+in file with name  "history" .
+</div>
+<div>
+It is the SQLite datadase file. And the query to get the history is:
+</div>
+<pre>
+SELECT
+    url,
+    title,
+    visit_count,
+    typed_count,
+    datetime(last_visit_time / 1000000 - 11644473600, 'unixepoch', 'localtime') AS last_visit
+FROM     urls
+ORDER BY last_visit
+
+</pre>
+
+</body>
+</html>
+

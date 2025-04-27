@@ -1,0 +1,62 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Powershell script">
+<meta name="keywords" content="Powershell, script">
+<title>PowerShell to loop through .cfg files on Windows and replace specific lines</title>
+</head>
+<body>
+<nav> <a href = "index2.html"> --- Up </a></nav>
+
+<h1>PowerShell script to loop through .cfg files on Windows and replace specific lines </h1>
+
+<h2>PowerShell script to loop through .cfg files on Windows Server 2019 and replace specific lines containing <server>my.domain.com</server> with <server>new.newdomain.com</server>.</h2>
+
+<pre> 
+# Set the directory where .cfg files are located
+$directory = "C:\Users\Jo\Desktop\Test"
+
+# Set the search string
+$searchString = "<server>old.olddomain.com</server>"
+
+# Set the replace string
+$replaceString = "<server>new.newdomain.com</server>"
+
+
+# Starting the worlflow 
+
+# Get all .cfg files in the directory
+$files = Get-ChildItem -Path $directory -Filter am.cfg -Recurse
+
+# Loop through each file
+foreach ($file in $files) {
+    # Read the content of the file
+    $content = Get-Content -Path $file.FullName
+
+    # Loop through each line in the content
+    for ($i = 0; $i -lt $content.Length; $i++) {
+        # Check if the line contains the search string
+        if ($content[$i] -match [regex]::Escape($searchString)) {
+            # Replace the line with the new string
+            $content[$i] = $content[$i] -replace [regex]::Escape($searchString), $replaceString
+        }
+    }
+
+    # Write the updated content back to the file
+    $content | Set-Content -Path $file.FullName
+}
+
+Write-Host "Replacement completed for all .cfg files in $directory."
+
+</pre>
+
+ 
+
+
+
+
+</body>
+</html>
