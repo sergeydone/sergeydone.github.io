@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Postgresql DB replication">
+<meta name="keywords" content="Postgresql, replication, Windows">
+<title>Postgresql DB replication</title>
+</head>
+<body>
+<nav> <a href = "index2.html"> --- Up </a></nav>
+
+<h1>Postgresql DB replication  </h1>
+
+<h2> # Setup Postrgesql DB logical replication </h2>
+
+<h3>&nbsp</h3>
+
+<h3> #-----------------------------------------------------------------# </h3>
+<h3> # ##### Setup Master server (part 1)</h3>
+<h3> #-----------------------------------------------------------------#</h3>
+<pre>
+sudo dnf install postgresql postgresql-server
+sudo postgresql-setup initdb
+
+vi /var/lib/pgsql/data/postgresql.conf
+listen_addresses = '*'
+password_encription = md5
+wal_level = logical
+
+vi /var/lib/pgsql/data/pg_hba.conf
+host  all  all  0.0.0.0/0   md5
+host  replication replica 0.0.0.0/0 md5
+
+systemctl enable postgresql
+systemctl start postgresql 
+
+sudo firewall-cmd --add-service=postgresql
+sudo firewall-cmd --reload
+
+su postgres
+psql
+CREATE USER replica REPLICATION LOGIN CONNECTION LIMIT 2 ENCRYPTED PASSWORD 'StrongPassword'
+GRANT USAGE ON SCHEMA public TO replica;
+GRANT SELECT ON ALL TABLES IN SCHEMA public TO replica;
+GRANT SELECT ON public.test_table TO replica;
+</pre>
+
+<div># (OPTIONAL) DB and table creation if not exists</div>
+<pre>
+create database mydb;
+\c mydb
+create table test_table (
+id serial primary key,
+name varchar(100),
+email varchar(100),
+createdat timestamp default current_timestamp);
+
+
+insert into test_table (name, email, createdat)
+select
+'Name ' || gs.i,
+'name' || gs.i || '@example.com',
+NOW()
+from generate_series(400000, 500000) as gs(i);
+</pre>
+
+
+<h3>#-----------------------------------------------------------------#</h3>
+<h3># ##### Setup Replica server (part 1)</h3>
+<h3>#-----------------------------------------------------------------#</h3>
+<pre>
+sudo dnf install postgresql postgresql-server
+sudo postgresql-setup initdb
+
+vi /var/lib/pgsql/data/postgresql.conf
+listen_addresses = '*'
+password_encription = md5
+
+vi /var/lib/pgsql/data/pg_hba.conf
+host  all  all  0.0.0.0/0   md5
+
+systemctl enable postgresql
+systemctl start postgresql
+
+su postgres
+psql
+ALTER USER postgres WITH PASSWORD 'YourStrongPassword';
+create database mydb;
+</pre>
+
+
+<div># Create DB schema damp before replication</div>
+<pre>
+pg_dump -h fedoraA -U replica -d mydb --schema-only --no-owner --no-privileges  -n public -n other_schemas > schema_dump.sql
+</pre>
+
+<div># Restore schema damp </div>
+<pre>
+psql -h localhost -U postgres -d mydb -f /root/schema_dump.sql
+</pre>
+
+<h3>#-----------------------------------------------------------------#</h3>
+<h3># ##### Setup Master server (part 2)</h3>
+<h3>#-----------------------------------------------------------------#</h3>
+<pre>
+su postgres
+psql
+\c mydb
+CREATE PUBLICATION mypub FOR ALL TABLES;
+</pre>
+
+<h3>#-----------------------------------------------------------------#</h3>
+<h3># ##### Setup Replica server (part 1)</h3>
+<h3>#-----------------------------------------------------------------#</h3>
+<pre>
+CREATE SUBSCRIPTION mysub
+CONNECTION 'host=fedoraA dbname=mydb user=replica password=StrongPassword'
+PUBLICATION mypub
+WITH (copy_data = true, create_slot = true);
+
+</pre>
+
+
+
+
+ 
+
+<details>
+<summary>
+================ADDITION==================
+</summary>
+
+<h3>#  ####### Alternate way to copy start DB before replication  </h3>
+<pre>
+sudo systemctl stop postgresql
+rsync -avz /var/lib/pgsql/data/ user@fedoraB:/var/lib/pgsql/data/
+sudo chown -R postgres:postgres /var/lib/pgsql/data/
+</pre>
+<h3>&nbsp</h3>
+
+<h3> # Test basic TCP connec </h3>
+<pre>
+sudo dnf install -y telnet  # If telnet not installed
+telnet 192.168.1.1 5432
+</pre>
+<h3>&nbsp</h3>
+
+<h3># Or use netcat</h3>
+<pre>
+sudo dnf install nc
+nc -zv 192.168.1.1 5432
+</pre>
+<h3>&nbsp</h3>
+
+<h3># Or with PostgreSQL client</h3>
+<pre>
+psql -h 192.168.1.1 -p 5432 -U youruser -d yourdb
+</pre>
+<h3>&nbsp</h3>
+
+
+<h3># Open firewall options</h3>
+<pre>
+sudo firewall-cmd --permanent --add-port=5432/tcp
+sudo firewall-cmd --add-service=postgresql
+sudo firewall-cmd --list-services
+sudo firewall-cmd --permanent --remove-service=postgresql
+sudo firewall-cmd --reload
+sudo firewall-cmd --zone=public --remove-service=postgresql
+sudo firewall-cmd --zone=public --permanent --remove-service=postgresql
+sudo firewall-cmd --reload
+</pre>
+<h3>&nbsp</h3>
+
+
+<h3># Verify the firewall rule</h3>
+<pre>
+sudo firewall-cmd --list-all
+</pre>
+<h3>&nbsp</h3>
+
+<h3># Wireshark</h3>
+<pre>
+sudo dnf install wireshark-cli
+sudo tshark -i any
+sudo tshark -i any -f "port 5432"
+sudo tshark -i any -f "src host 172.234.103.137"
+sudo tshark -i any -f "dst host 172.234.103.137"
+-t u (UTC time):
+</pre>
+<h3>&nbsp</h3>
+
+
+<h3># Set timezone</h3>
+<pre>
+sudo timedatectl set-timezone Europe/Kyiv
+timedatectl list-timezones
+timedatectl
+</pre>
+<h3>&nbsp</h3>
+
+</details>
+</body>

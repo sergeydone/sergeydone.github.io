@@ -20,13 +20,16 @@ with wal archives:</h2>
 <h3> # 1 ####### Install Postgresql master </h3>
 <pre>
 sudo dnf install postgresql postgresql-server
-systemctl postgresql enable
-systemctl postgresql start
+postgresql-setup initdb
+systemctl enable postgresql 
+systemctl start postgresql 
 </pre>
 <h3>&nbsp</h3>
 
 <h3># 2 ####### Install Postgresql slave</h3>
-<pre>sudo dnf install postgresql postgresql-server</pre>
+<pre>sudo dnf install postgresql postgresql-server
+postgresql-setup initdb
+</pre>
 <h3>&nbsp</h3>
 
 
