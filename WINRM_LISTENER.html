@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Postgresql DB replication">
+<meta name="keywords" content="Postgresql, replication, Windows">
+<title>WinRM Listener</title>
+</head>
+<body>
+<nav> <a href = "index2.html"> --- Up </a></nav>
+
+<h1>Create a WinRM listener on HTTP transport, listening on port 1524  </h1>
+
+<h2> # The Receiver-Server config </h2>
+
+<pre>
+winrm quickconfig
+
+winrm enumerate winrm/config/listener
+
+winrm delete winrm/config/Listener?Address=*+Transport=HTTP
+
+$listener = @{
+    Address = "*"
+    Transport = "HTTP"
+    Port = 1524
+}
+New-Item -Path WSMan:\Localhost\Listener -Transport HTTP -Address * -Port 1524
+
+New-Item -Path WSMan:\Localhost\Listener\Listener_1 -Value @{Address="*"; Transport="HTTP"; Port="1524"}
+</pre>
+
+
+<h2> # The Sender-Server config </h2>
+<pre>
+$s = New-PSSession -ComputerName 127.0.0.1 -Port 1524 -Credential $u -Authentication Default -UseSSL:$false
+
+Enter-PSSession $s
+ 
+Copy-Item -Path "C:\Install\1\*" -Destination "C:\Install\2" -Recurse -Force
+
+Exit-PSSession
+Remove-PSSession $s
+</pre>
+
+<h3>&nbsp</h3>
+
+<details>
+<summary>
+Stoping the service on the Receiver-Server
+</summary>
+<pre>
+winrm delete winrm/config/Listener?Address=*+Transport=HTTP
+Get-ChildItem WSMan:\Localhost\Listener
+Remove-Item -Path WSMan:\Localhost\Listener\Listener_1
+
+/*OR*/
+Stop-Service WinRM
+Set-Service WinRM -StartupType Disabled
+</pre>
+
+</details>
+</body>
