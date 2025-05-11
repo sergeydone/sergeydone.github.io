@@ -34,13 +34,14 @@ New-Item -Path WSMan:\Localhost\Listener\Listener_1 -Value @{Address="*"; Transp
 
 <h2> # The Sender-Server config </h2>
 <pre>
+winrm set winrm/config/client '@{TrusedHosts="10.3.11.37"}'
+
+$u = Get-Credential
+
 $s = New-PSSession -ComputerName 127.0.0.1 -Port 1524 -Credential $u -Authentication Default -UseSSL:$false
 
-Enter-PSSession $s
- 
-Copy-Item -Path "C:\Install\1\*" -Destination "C:\Install\2" -Recurse -Force
+Copy-Item -Path "C:\Install\1\*" -Destination "C:\Install\2" -Recurse -Force -ToSession $s
 
-Exit-PSSession
 Remove-PSSession $s
 </pre>
 
@@ -58,6 +59,13 @@ Remove-Item -Path WSMan:\Localhost\Listener\Listener_1
 /*OR*/
 Stop-Service WinRM
 Set-Service WinRM -StartupType Disabled
+</pre>
+
+
+<pre>
+/* Just additional futures */
+Enter-PSSession $s
+Exit-PSSession
 </pre>
 
 </details>
