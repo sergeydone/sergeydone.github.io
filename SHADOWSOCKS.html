@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Postgresql DB replication">
+<meta name="keywords" content="Postgresql, replication, Windows">
+<title>WIREGUARD</title>
+</head>
+<body>
+<nav> <a href = "index2.html"> --- Up </a></nav>
+
+<h1>Create the Shadowsocks Ubuntu server and connection  </h1>
+
+<h2> # The Ubuntu Server config </h2>
+
+<pre>
+sudo apt update
+sudo apt install shadowsocks-libev -y
+
+
+sudo nano /etc/shadowsocks-libev/config.json
+
+### add content:
+###
+{
+    "server":"0.0.0.0",
+    "mode":"tcp_and_udp",
+    "server_port":8388,
+    "local_port":1080,
+    "password":"Strong_Password",
+    "timeout":300,
+    "method":"chacha20-ietf-poly1305",
+    "fast_open": false,
+    "nameserver": "1.1.1.1"
+}
+###
+
+sudo systemctl enable shadowsocks-libev.service
+sudo systemctl start shadowsocks-libev.service
+
+sudo ufw allow 8388/tcp
+sudo ufw allow 8388/udp
+sudo ufw allow ssh
+sudo ufw enable
+
+</pre>
+
+
+<h2> # Winldows Client config</h2>
+<pre>
+### Download the Shadowsocks Windows client:
+### GitHub: <a href="https://github.com/shadowsocks/shadowsocks-windows/releases">https://github.com/shadowsocks/shadowsocks-windows/releases</a>
+### Install and open the app.
+### Enter your server details:
+### Server IP: your Ubuntu server IP
+### Port: 8388 (or whatever you used)
+### Password: same as in server config
+### Encryption method: chacha20-ietf-poly1305  
+### Set system proxy (optional) or use tools like:
+### Proxifier (to force all apps to go through Shadowsocks)
+### v2rayN (for advanced routing, full tunnel simulation)
+
+</pre>
+
+<details>
+<summary>
+Without additional tools:
+</summary>
+<pre>
+### Only apps that support SOCKS5 proxies (like browsers) will use the Shadowsocks connection.
+### You need to manually configure each app to use 127.0.0.1:1080 (the local SOCKS5 port).
+### Examples:
+### Firefox: Go to Settings → Network → Manual proxy setup.
+### Chrome: Needs proxy flags or extensions.
+
+</pre>
+
+</details>
+
+<h2> # Android Client config </h2>
+<pre>
+### Use GitHub Releases
+### The official Shadowsocks Android repository on GitHub provides APK files in the "Releases" section.
+### <a href = "https://github.com/shadowsocks/shadowsocks-android/releases">https://github.com/shadowsocks/shadowsocks-android/releases</a>
+### Download the latest APK file.
+### Follow the same installation steps:
+### Open the Shadowsocks app.
+### Add a new profile:
+### Tap the "+" button.
+### Enter your server details:
+### Server: Your Ubuntu server's IP address.
+### Remote Port: The port you've configured on your server (default is 8388).
+### Password: The password you've set for Shadowsocks.
+### Encryption Method: Choose the encryption method (e.g., chacha20-ietf-poly1305).
+### Configure VPN mode for selected apps
+### Save the profile and tap to connect.
+</pre>
+
+
+<h3>&nbsp</h3>
+
+<details>
+<summary>
+Check connection status on the Server
+</summary>
+<pre>
+# Show firewall status
+sudo ufw status verbose
+
+# Show clients are connected to the port
+sudo lsof -i :8388
+
+# Show clients are connecthe port
+sudo netstat -anp | grep 8388
+
+# Show clients are connecthe port
+sudo ss -nptu | grep 8388
+
+# Check logs
+journalctl -u shadowsocks-libev -f
+
+# Capturing tcp trafic on the port
+sudo tcpdump -i any port 8388
+</pre>
+
+</details>
+
+<h3>&nbsp</h3>
+
+</body>
