@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Postgresql DB client process">
+<meta name="keywords" content="Postgresql, client, process">
+<title>WIREGUARD</title>
+</head>
+<body>
+<nav> <a href = "index2.html"> --- Up </a></nav>
+
+<h1>Find the Windows Client process which is connected to Postgresql Database.  </h1>
+
+<h2> # Inside PgAdmin or psql run: </h2>
+
+<pre>
+select * from pg_stat_activity
+</pre>
+
+<div> # Find the row you interesed in and writedown its fields: 'client_ip' and 'client_port' </div>
+
+<h2># Connect into HOST with interested 'client_ip' and run in cmd:</h2>
+<pre>
+netstat -ano | findstr :client_port
+</pre>
+
+<div># writedown the process ID, and run:</div>
+
+<pre>
+powershell Get-Process -Id ID | Select-Object Name, Id, Path
+</pre>
+
+
+<h3>&nbsp</h3>
+
+</body>
