@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="SSL BIND">
+<meta name="keywords" content="SSL, certificate, port">
+<title>WIREGUARD</title>
+</head>
+<body>
+<nav> <a href = "index2.html"> --- Up </a></nav>
+
+<h1>Create SSL certificate and bind into custom tcp-port</h1>
+
+<h2># Create certificate</h2>
+
+<pre>
+$cert = New-SelfSignedCertificate -DnsName "my-pc-name.mydomain.com" -CertStoredLocation "cert:\LocalMachine\My" 
+</pre>
+
+
+<h2># Get certificate data:</h2>
+<pre>
+Get-ChildItem -Path Cert:\LocalMachine\My
+............................. CN=my-pc-name.mydomain.com
+</pre>
+
+<h2># Bind certificate to port</h2>
+<pre>
+$thumbprint = "............................." 
+$appGuid = "{00000000-0000-0000-0000-000000000000}"
+netsh http add sslcert ipport=0.0.0.0:9999 certhash=$thumbprint appid=$appGuid
+</pre>
+
+<h2># Show certificate</h2>
+<pre>
+netsh http show sslcert
+</pre>
+
+
+
+
+
+
+<h3>&nbsp</h3>
+
+<details>
+<summary>
+Additional operaions
+</summary>
+<pre>
+# Optional - export certificate to file
+Eport-Certificate -Cert $cert -FilePath "c:\MyPath\server.cer"
+
+# Optional - delete certificate
+netsh http delete sslcert ipport=0.0.0.0:9999
+
+# Optional - path to certificate storage
+# C:\ProgramData\Microsoft\Crypto\RSA\MachineKeys
+
+</pre>
+
+
+ 
+
+</details>
+</body>
