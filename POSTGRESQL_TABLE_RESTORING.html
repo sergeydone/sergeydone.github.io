@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Postgresql table restoring">
+<meta name="keywords" content="Postgresql, table, restore">
+<title>Postgresql DB tables quality</title>
+</head>
+<body>
+<nav> <a href = "index2.html"> --- Up </a></nav>
+
+<h1>Postgresql - table data from the sql-dump restoring </h1>
+
+<h2> #  unpack zip dump:</h2>
+<code>
+"C:\Program Files\7-zip\7z.exe" x -o"D:\Destination" "D:\BackupSource\backup.zip"  -mmt=on -bsp1
+</code>
+
+<h2># find custom data section in the dump (extracts table from the dump) </h2>
+<pre>
+$sr = New-Object System.IO.StreamReader("D:\Destination\backup.sql")
+$sw = New-Object System.IO.StreamWriter("D:\Destination\table.sql")
+$copying = false
+$tableName = "my_table_name"
+
+while (($line = $sr.ReadLine()) -ne $null) {
+if ($line.StartsWith("COPY public.$tableName")) {
+$copying = $true
+}
+if($copying){
+$sw.WriteLine($line)
+if($line -eq "\.") { break }
+}
+}
+$sr.Close()
+$sw.Close()
+</pre>
+
+<h2># 3 - restore table data in psql (with precaution)</h2>
+<pre>
+psql -U postgres
+\c MyDatabaseName
+\d
+
+TRUNCATE TABLE public.my_table_name;
+ALTER TABLE public.my_table_name DISABLE TRIGGER ALL;
+-- pay attention on the table constraints, if foreign keys is not exists - ok
+\i table.sql
+ALTER TABLE public.my_table_name ENABLE TRIGGER ALL
+</pre>
+
+<div>&nbsp</div>
+<div>&nbsp</div>
+
+</body>
