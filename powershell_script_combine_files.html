@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="powershell Combining files">
+<meta name="keywords" content="powershell, Combining, files">
+<title>Powershell Combining files</title>
+</head>
+<body>
+<nav> <a href = "index2.html"> --- Up </a></nav>
+
+<h1>Powershell Combining files script</h1>
+
+
+<h2># Combining one row files into one file (rows part and value after the last ':')</h2>
+<pre>
+# SET
+$inputFolder = ""
+$outputFile = ""
+
+
+# WORKLOAD
+$results = @()
+
+Get-ChildItem -Path $inputFolder "*.txt" | ForEach-Object {
+$file = $_.FullName
+Write-Host $file.Length
+
+if($file.Length -lt 1000) {
+ 
+		Get-Content $file | ForEach-Object {
+			$line = $_.Trim()
+			$parts = $line -split ":"
+ 
+
+			if($parts.Count -ge 3) {
+ 
+				$extractedText = ($parts[1..2] -join ":").Trim()
+				$lastPart = $parts[-1].Trim()
+				$number = $lastPart
+				$results += "$extractedText : $number"
+ 
+			}
+		}
+	}
+}
+
+$results | Out-File -Encoding UTF8 -FilePath $outputFile
+
+Write-Host "Processed $($results.Count) entries. Output saved to $outputFile"
+</pre>
+
+
+
+</body>
+</html>
+
+
+
+

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Postgresql table restoring">
+<meta name="keywords" content="Postgresql, table, restore">
+<title>Postgresql backup restore without data</title>
+</head>
+<body>
+<nav> <a href = "index2.html"> --- Up </a></nav>
+
+<h1>Postgresql - backup and restore database without data </h1>
+
+<h2> # 1. Back up only the schema (structure) of a PostgreSQL database without including any data.  </h2>
+<code>
+pg_dump -U username -h host -p port --schema-only dbname > db_structure.sql
+</code>
+
+
+
+
+<h2># 2. Create a new empty database (if needed) </h2>
+<code>
+createdb -U username -h host -p port newdbname
+</code>
+
+<h2># 3. Restore the schema dump into new database </h2>
+<code>
+psql -U username -h host -p port -d newdbname -f db_structure.sql
+</code>
+
+<div>&nbsp</div>
+<div>&nbsp</div>
+
+</body>
