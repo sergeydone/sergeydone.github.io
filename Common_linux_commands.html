@@ -175,8 +175,32 @@ h -> left
 l -> right
 i -> insert
 ESC -> normal mode
-:wq -> exit
+:wq -> save and exit
+:!q -> exit
 </pre>
+
+
+<h2> HDD monitoring </h2>
+<pre>
+# Monitor disk statistics with queue length info
+# avgqu-sz - Average queue length (most direct equivalent to Windows Disk Queue Length)
+# await - Average wait time for I/O requests (ms)
+# %util - Percentage of CPU time during which I/O requests were issued
+iostat -x 1
+
+# Continuous monitoring with 2-second intervals
+iostat -x 2
+
+# vmstat
+vmstat -d 1
+
+# iotop
+sudo iotop
+
+# diskstats
+cat /proc/diskstats
+
+</pre> 
 
 
 </body>
