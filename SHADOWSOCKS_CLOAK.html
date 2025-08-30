@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Shadowsocks plust Cloak">
+<meta name="keywords" content="Shadowsocks, Cloak">
+<title>Shadowsocks plust Cloak</title>
+</head>
+<body>
+<nav> <a href = "index2.html"> --- Up </a></nav>
+
+<h1>Create the Shadowsocks+Cloak Ubuntu server and connection  </h1>
+
+
+<h2># Prepare </h2>
+<pre>
+# Download the script for automated install cloak with shadowsocks from github:
+# https://github.com/HirbodBehnam/Shadowsocks-Cloak-Installer/blob/master/Cloak2-Installer.sh
+# or directly from here :
+</pre>
+<a href = "assets/ck-server-installer.zip"> cloak linux server installer </a>
+
+
+<h2> # Setup Ubuntu (20.04.LTS) shadowsocks+cloak server </h2>
+<pre>
+# Copy script for automated install cloak with shadowsocks into the server by poweshell command:
+scp "C:\Users\Jo\Downloads\Cloak2-Installer.sh" root@IPADDRESS:/var/tmp
+
+# In the server make the script executable:
+cd /var/tmp
+sudo chmod +x Cloak2-Installer.sh
+
+# Run the script and follow the questions on the screen durin installation process:
+./Cloak2-Installer.sh 
+
+# Generate new UIDs and keys:
+ck-server -uid
+
+# Insert Your UID into BypassUID section
+cd /etc/cloak
+nano ckserver.json
+
+# Insert Your UID into UID section and memorize your PublicKey
+nano shadowsocks.json
+
+# Setup the firewall:
+sudo ufw allow 443/tcp
+sudo ufw allow 443/udp
+sudo ufw allow ssh
+sudo ufw enable
+
+# Reboot the server:
+reboot
+
+# Check The Cloak service status
+systemctl status cloak-server.service
+</pre>
+
+
+<h2># Setup Cloak Windows client </h2>
+<pre>
+# Download the Cloak windows client from github:
+https://github.com/cbeuw/Cloak/releases/download/v2.12.0/ck-client-windows-amd64-v2.12.0.exe
+# or directly from here:
+</pre>
+<a href = "assets/ck-client-win.zip"> cloak windows client </a>
+<pre>
+# Rename plugin file into ck-client.exe for simplicity.
+# Put it the plugin file into a folder like C:\Cloak
+# Inside Your local folder C:\Cloak create a file named ckclient.json with the content:
+{
+  "Transport": "direct",
+  "ProxyMethod": "shadowsocks",
+  "EncryptionMethod": "plain",
+  "UID": "<ClientUID>",
+  "PublicKey": "<ServerPublicKey>",
+  "ServerName": "www.bing.com",
+  "NumConn": 1,
+  "BrowserSig": "chrome",
+  "StreamTimeout": 300
+}
+
+# in the content above Replace:
+## <ClientUID> → The client UID you generated on the server (ck-server -u output for the user, not admin).
+## <ServerPublicKey> → The first value from ck-server -k output (before the comma).
+## "ServerName" → Must match the RedirAddr you set on the server (can be a real domain like www.bing.com).
+</pre>
+
+<h2># Setup Shadowsocks Windows client </h2>
+<pre>
+# Download Shadowsocks Windows client from github
+https://github.com/shadowsocks/shadowsocks-windows/releases
+# or directly from here:
+</pre>
+<a href = "assets/shadowsocks-win.zip"> shadowsocks windows client </a>
+<pre>
+## Install and open it.
+## Add a new server profile:
+## Server IP → Your VPS IP
+## Server Port → 443
+## Password → same as your Shadowsocks server password
+## Encryption → same as server (aes-256-gcm, etc.)
+## Plugin → browse to C:\Cloak\ck-client.exe
+## Plugin Options → -c C:\Cloak\ckclient.json
+## Proxy Port 1080
+## Portable mode
+## Apply
+</pre>
+
+<h2># Setup Proxy in Windows browser </h2>
+<pre>
+# in Firefox  go to "about:preferences"
+# Network Settings --> Settings
+# Manual proxy configuration --> SOCKS Host : 127.0.0.1, Port --> 1080
+# Test by visiting https://ifconfig.co — it should show your VPS IP.
+</pre>
+
+<h2># Setup Shadowsocks Android client</h2>
+<pre>
+# Download and install the Shadowsocks android client from github  https://github.com/shadowsocks/
+# or directly from here:
+</pre>
+<a href = "assets/shadowsocks-android.zip"> shadowsocks android client </a>
+
+<pre>
+# Download and install the Cloak android client from github  https://github.com/cbeuw/Cloak/
+# or directly from here:
+</pre>
+<a href = "assets/ck-client-adroid.zip"> cloak android client </a>
+ 
+<pre>
+# Setup the cloak profile:
+  "Transport": "direct",
+  "ProxyMethod": "shadowsocks",
+  "EncryptionMethod": "plain",
+  "UID": "<ClientUID>",
+  "PublicKey": "<ServerPublicKey>",
+  "ServerName": "www.bing.com",
+  "NumConn": 1,
+  "BrowserSig": "chrome",
+  "StreamTimeout": 300
+
+# Setup the Shadowsocks profile:
+  "Server" - <your server ip-address>
+  "Remote port" - 443
+  "Password" - <your password>
+  "Encriotion Method" - <your encription method>
+  "Plugin" - <Cloak - select from installed list>
+  "Configure" :
+  "Proxy Method": shadowsocks
+  "Transport": direct
+  "UID" - your UID
+  "Public Key" - your public key
+  "Server name" - www.bing.com
+  "Browser Signature" - chrome
+  "Number of Connections" - 1
+  "Stream Timeout" - 300
+</pre>
+
+
+<h3>&nbsp</h3>
+
+<details>
+<summary>
+Check connection status on the Server
+</summary>
+<pre>
+# Show firewall status
+sudo ufw status verbose
+
+# Monitor the external connections :
+sudo netstat -tnlp | grep ck-server
+sudo ss -tnlp | grep ck-server
+sudo lsof -i :443
+
+# Cloak plugin settings has described here:
+# https://github.com/cbeuw/Cloak?tab=readme-ov-file#configuration
+
+</pre>
+
+</details>
+
+<h3>&nbsp</h3>
+
+</body>
