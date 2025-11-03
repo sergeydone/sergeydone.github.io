@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Bash files copy tcp client">
+<meta name="keywords" content="Bash, script, copy, file, tcp-connection">
+<title>Bash script to copy file via tcp-connection </title>
+</head>
+<body>
+<nav> <a href = "index2.html"> --- Up </a></nav>
+
+<h1>Bash script to copy file via tcp-connection </h1>
+
+
+<pre> 
+#!/bin/bash
+
+# Set remote connection:
+password="password"
+username="username"
+serverIP="192.168.56.1"
+serverPort=1992
+
+# Set folder with logs to transfer:
+sourceDirectory="/var/log/MonitoringLogs"
+
+# Set timeout, seconds
+tic=60
+
+
+# # BEGIN
+
+to_le32() {
+    local n=$1
+    printf "%08x" "$n" | tac -rs.. | xxd -r -p
+}
+
+send_file() {
+    local filepath="$1"
+    [ ! -f "$filepath" ] && return
+
+    local filename creds
+    filename="$(basename "$filepath")"
+    creds="${username}:${password}"
+
+    local creds_len="${#creds}"
+    local file_len="${#filename}"
+    local filesize
+    filesize=$(stat -c%s "$filepath")
+
+    echo "Sending $filename ($filesize bytes)"
+
+    {
+        to_le32 "$creds_len"
+        printf "%s" "$creds"
+
+        to_le32 "$file_len"
+        printf "%s" "$filename"
+
+        to_le32 "$filesize"
+        cat "$filepath"
+    } | nc "$serverIP" "$serverPort"
+
+    if [ $? -eq 0 ]; then
+        echo "Sent: $filepath"
+        rm -f "$filepath"
+    else
+        echo " Failed: $filepath"
+    fi
+}
+
+while true; do
+    currentDate=$(date '+%Y-%m-%d %H:%M:%S')
+    echo "[$currentDate] Scanning for files..."
+
+    while IFS= read -r file; do
+        echo "Found: $file"
+        send_file "$file"
+        sleep 0.5  # pause to close socket
+    done < <(find "$sourceDirectory" -type f)
+
+    echo "Sleeping for $tic seconds..."
+    sleep "$tic"
+done
+
+</pre>
+
+<div>&nbsp</div>
+
+<div>&nbsp</div>
+
+</body>
+</html>

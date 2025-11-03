@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Bash monitoring">
+<meta name="keywords" content="Bash, script, cpu, hdd, ram, monitoring">
+<title>Bash script to hdd cpu ram monitoring </title>
+</head>
+<body>
+<nav> <a href = "index2.html"> --- Up </a></nav>
+
+<h1>Bash script for HDD CPU RAM monitoring </h1>
+
+
+<pre> 
+#!/bin/bash
+
+# Settings section
+# Set log files folder
+LOGDIR="/var/log/MonitoringLogs"
+
+# Set timer interval, seconds
+tic=20
+
+# Set disk path
+disks_path=("/" "/boot")
+
+# Set trasholds for alerts:
+ram_alert=5               # Gb
+cpu_alert=95              # %
+disk_alert=2              # Gb
+disk_alert_percent=5      # % (optional)
+
+# Set send alive status
+send_alive="true"
+
+# workload section
+
+# # CPU measurement function
+get_cpu_usage() {
+  read cpu user nice system idle iowait irq softirq steal guest < /proc/stat
+  total1=$((user + nice + system + idle + iowait + irq + softirq + steal))
+  idle1=$((idle + iowait))
+  sleep 1
+  read cpu user nice system idle iowait irq softirq steal guest < /proc/stat
+  total2=$((user + nice + system + idle + iowait + irq + softirq + steal))
+  idle2=$((idle + iowait))
+
+  total_diff=$((total2 - total1))
+  idle_diff=$((idle2 - idle1))
+  usage=$((100 * (total_diff - idle_diff) / total_diff))
+
+  echo "$usage"
+}
+
+
+# # RAM measurement function
+get_ram_usage() {
+
+  # Read MemTotal and MemAvailable from /proc/meminfo (in kB)
+  read total_kb avail_kb < <(awk '/MemTotal/ {t=$2} /MemAvailable/ {a=$2} END {print t, a}' /proc/meminfo)
+
+  # Convert to GB
+  total=$(( total_kb / 1024  ))
+  avail=$(( avail_kb / 1024  ))
+  
+# Calculate percentage
+  percent=$(( 100 * avail_kb / total_kb ))
+
+  echo "$total|$avail|$percent"
+}
+
+
+# # DISK  measurement functioun
+get_disk_usage() {
+
+     for disk_path in "$@"; do
+     if mountpoint -q "$disk_path"; then
+
+ 	 read -r used_kb total_kb  <<<$(df -k --output=used,size "$disk_path" | awk 'NR==2 {print $1, $2}')
+	 used_gb=$(( used_kb / 1024 / 1024 ))
+	 total_gb=$(( total_kb / 1024 /1024 ))
+ 	 free_kb=$(( total_kb - used_kb ))
+  	 free_gb=$(( free_kb / 1024 / 1024 ))
+         percent=$(( 100 * free_kb / total_kb ))
+  
+ 	 echo "${total_gb}|${free_gb}|${percent}|${disk_path}"
+     else
+	echo "0|0|0|${disk_path}"
+     fi
+  done
+}
+
+
+# ### BEGIN
+# Init section:
+host=$(hostname -s)
+mycpu=$(nproc)
+#timestamp=$(date '+%Y%m%d%H%M%S')
+
+# ## Cycling:
+while true; do
+
+timestamp=$(date '+%Y%m%d%H%M%S')
+
+
+# Get CPU usage (100 - % idle):
+CPU=$(get_cpu_usage)
+mycpuidle=$(( 100-CPU ))
+randstr=$(tr -dc a-z0-9 </dev/urandom | head -c 3)
+LOGFILE="${LOGDIR}/${timestamp}_${host}_MonLog_${randstr}.log"
+echo "Information: GPU Info. : ${host} : $(date -u '+%Y-%m-%d %H:%M') : CPU Cores : ${mycpu} : CPU load : ${CPU} : CPU Idle : ${mycpuidle} " > "$LOGFILE"
+
+# Check CPU load %  for alerting
+if (( CPU > cpu_alert )); then 
+	randstr=$(tr -dc a-z0-9 </dev/urandom | head -c 3)
+	LOGFILE="${LOGDIR}/${timestamp}_${host}_MonLog_${randstr}.log"
+	echo "Alert: ${host} : Alert: GPU Alert!: CPU loading is : ${CPU} at : $(date -u '+%Y-%m-%d %H:%M:%S') :" > "$LOGFILE"
+fi
+
+
+
+
+# Get available memory in GB and percent:
+read total avail percent < <(get_ram_usage | tr '|' ' ')
+MEM="RAM Total: $total : RAM Free : $avail : RAM Free percent : $percent"
+randstr=$(tr -dc a-z0-9 </dev/urandom | head -c 3)
+LOGFILE="${LOGDIR}/${timestamp}_${host}_MonLog_${randstr}.log"
+echo "Information: RAM Info. : ${host} : $(date -u '+%Y-%m-%d %H:%M') : ${MEM} " > "$LOGFILE"
+
+# Check available memeory GB for alerting
+if (( $avail < $ram_alert )); then 
+	randstr=$(tr -dc a-z0-9 </dev/urandom | head -c 3)
+	LOGFILE="${LOGDIR}/${timestamp}_${host}_MonLog_${randstr}.log"
+	echo "Alert: ${host} : Alert: RAM Alert!: Available RAM is : ${avail} Gb at : $(date -u '+%Y-%m-%d %H:%M:%S') :" > "$LOGFILE"
+fi
+
+
+# Get available Disk space in GB and %:
+for target in "${disks_path[@]}"; do
+	read total_gb free_gb percent path < <(get_disk_usage "${target}" | tr '|' ' ')
+	DISK="$path: Total size: $total_gb GB, Free space: $free_gb GB --> ($percent % ) ."
+        randstr=$(tr -dc a-z0-9 </dev/urandom | head -c 3)
+	LOGFILE="${LOGDIR}/${timestamp}_${host}_MonLog_${randstr}.log"
+	echo "Information: Disk Info. : ${host} : ${DISK}" > "$LOGFILE"
+
+        # Check available disk space GB for alerting
+	if (( total_gb > 0 )); then
+		if (( free_gb < disk_alert )); then 
+			randstr=$(tr -dc a-z0-9 </dev/urandom | head -c 3)
+			LOGFILE="${LOGDIR}/${timestamp}_${host}_MonLog_${randstr}.log"
+        		echo "Alert: ${host} : Alert: Disk Alert! ${host} ${path} Total size: ${total_gb} GB , Free space: ${free_gb} GB --> (${percent})% at : $(date -u '+%Y-%m-%d %H:%M:%S') :" > "$LOGFILE"
+ 		fi
+	else 
+		if (( percent < disk_alert_percent )); then 
+	                randstr=$(tr -dc a-z0-9 </dev/urandom | head -c 3)
+			LOGFILE="${LOGDIR}/${timestamp}_${host}_MonLog_${randstr}.log"
+        		echo "Alert: ${host} : Alert: Disk Alert! ${host} ${path} Total size: ${total_gb} GB , Free space: ${free_gb} GB --> (${percent})% at : $(date -u '+%Y-%m-%d %H:%M:%S') :" > "$LOGFILE"
+		fi
+
+	fi
+
+
+
+done	
+
+# Log Alive status
+if [[ "$send_alive" == "true" ]]; then
+	randstr=$(tr -dc a-z0-9 </dev/urandom | head -c 3)
+	LOGFILE="${LOGDIR}/${timestamp}_${host}_MonLog_${randstr}.log"
+	echo "Information (Just alive message) : ${host} : $(date -u '+%Y-%m-%d %H:%M') : Status : Alive " > "$LOGFILE"
+fi
+
+
+sleep "$tic"
+done
+
+
+</pre>
+
+<div>&nbsp</div>
+
+<div>&nbsp</div>
+
+</body>
+</html>
